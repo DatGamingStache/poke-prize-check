@@ -24,13 +24,58 @@ const GameBoard = ({ decklist, onGameComplete }: GameBoardProps) => {
   const [timeSpent, setTimeSpent] = useState(0);
   const { toast } = useToast();
 
+  const parseDeckList = (decklist: string) => {
+    // Split the decklist into lines and remove empty lines
+    const lines = decklist.split('\n').filter(line => line.trim());
+    
+    // Parse each line into card count and name
+    const deck: string[] = [];
+    lines.forEach(line => {
+      const match = line.trim().match(/^(\d+)\s+(.+)$/);
+      if (match) {
+        const [, count, cardName] = match;
+        // Add the card to the deck the specified number of times
+        for (let i = 0; i < parseInt(count); i++) {
+          deck.push(cardName);
+        }
+      }
+    });
+
+    return deck;
+  };
+
   useEffect(() => {
-    // Simulate drawing initial hand and setting prizes
-    const cards = decklist.split("\n").filter(card => card.trim());
-    const shuffled = [...cards].sort(() => Math.random() - 0.5);
-    setHand(shuffled.slice(0, 7));
-    setPrizes(shuffled.slice(7, 13));
-  }, [decklist]);
+    const deck = parseDeckList(decklist);
+    
+    if (deck.length !== 60) {
+      toast({
+        title: "Invalid Deck",
+        description: "Please ensure your deck contains exactly 60 cards",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Shuffle the deck
+    const shuffledDeck = [...deck].sort(() => Math.random() - 0.5);
+    
+    // Draw 7 cards for hand
+    const initialHand = shuffledDeck.slice(0, 7);
+    
+    // Take 6 cards for prizes
+    const prizesCards = shuffledDeck.slice(7, 13);
+    
+    setHand(initialHand);
+    setPrizes(prizesCards);
+  }, [decklist, toast]);
+
+  const handleCardGuess = (cardName: string, index: number) => {
+    if (guesses.length >= 6) return;
+    
+    const newGuesses = [...guesses];
+    newGuesses[index] = cardName;
+    setGuesses(newGuesses);
+  };
 
   const handleSubmitGuesses = () => {
     if (guesses.length !== 6) {
@@ -61,8 +106,8 @@ const GameBoard = ({ decklist, onGameComplete }: GameBoardProps) => {
         <Timer onTimeUpdate={setTimeSpent} />
         
         <div className="space-y-6">
-          <h3 className="text-lg font-medium">Your Hand</h3>
-          <div className="card-grid">
+          <h3 className="text-lg font-medium">Your Hand ({hand.length} cards)</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {hand.map((card, index) => (
               <Card key={index} className="p-4 text-center animate-fade-in">
                 {card}
@@ -73,13 +118,14 @@ const GameBoard = ({ decklist, onGameComplete }: GameBoardProps) => {
 
         <div className="mt-8 space-y-6">
           <h3 className="text-lg font-medium">Prize Guesses</h3>
-          <div className="card-grid">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {Array(6).fill(null).map((_, index) => (
               <Card 
                 key={index} 
                 className="p-4 text-center cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => {
-                  // Implement prize guessing logic
+                  const guess = prompt("Enter your guess for this prize card:");
+                  if (guess) handleCardGuess(guess, index);
                 }}
               >
                 {guesses[index] || "Click to guess"}

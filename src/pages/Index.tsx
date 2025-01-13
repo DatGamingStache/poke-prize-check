@@ -1,11 +1,53 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React, { useState } from "react";
+import DeckUploader from "@/components/DeckUploader";
+import GameBoard from "@/components/GameBoard";
+import ResultsDisplay from "@/components/ResultsDisplay";
+
+interface GameResult {
+  correctGuesses: number;
+  totalPrizes: number;
+  guessedCards: string[];
+  actualPrizes: string[];
+  timeSpent: number;
+}
 
 const Index = () => {
+  const [decklist, setDecklist] = useState<string>("");
+  const [gameResult, setGameResult] = useState<GameResult | null>(null);
+  const [gameStarted, setGameStarted] = useState(false);
+
+  const handleDeckSubmit = (deck: string) => {
+    setDecklist(deck);
+    setGameStarted(true);
+    setGameResult(null);
+  };
+
+  const handleGameComplete = (results: GameResult) => {
+    setGameResult(results);
+    setGameStarted(false);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <h1 className="text-4xl font-bold text-center mb-8">
+          TCG Prize Predictor
+        </h1>
+
+        {!gameStarted && !gameResult && (
+          <DeckUploader onDeckSubmit={handleDeckSubmit} />
+        )}
+
+        {gameStarted && (
+          <GameBoard 
+            decklist={decklist}
+            onGameComplete={handleGameComplete}
+          />
+        )}
+
+        {gameResult && (
+          <ResultsDisplay results={gameResult} />
+        )}
       </div>
     </div>
   );

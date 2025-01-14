@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowUpDown } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -32,6 +32,9 @@ interface GameSession {
   };
 }
 
+type SortField = 'date' | 'deck' | 'score' | 'accuracy' | 'time';
+type SortOrder = 'asc' | 'desc';
+
 const History = () => {
   const [sessions, setSessions] = useState<GameSession[]>([]);
   const [filteredSessions, setFilteredSessions] = useState<GameSession[]>([]);
@@ -40,6 +43,8 @@ const History = () => {
   const [minScore, setMinScore] = useState("");
   const [maxTime, setMaxTime] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [sortField, setSortField] = useState<SortField>('date');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -122,8 +127,44 @@ const History = () => {
       });
     }
 
+    // Sort the filtered results
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortField) {
+        case 'date':
+          comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          break;
+        case 'deck':
+          comparison = (a.decklist?.name || '').localeCompare(b.decklist?.name || '');
+          break;
+        case 'score':
+          comparison = a.correct_guesses - b.correct_guesses;
+          break;
+        case 'accuracy':
+          const aAccuracy = (a.correct_guesses / a.total_prizes) * 100;
+          const bAccuracy = (b.correct_guesses / b.total_prizes) * 100;
+          comparison = aAccuracy - bAccuracy;
+          break;
+        case 'time':
+          comparison = a.time_spent - b.time_spent;
+          break;
+      }
+
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+
     setFilteredSessions(filtered);
-  }, [sessions, searchDeck, minScore, maxTime, selectedDate]);
+  }, [sessions, searchDeck, minScore, maxTime, selectedDate, sortField, sortOrder]);
+
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
 
   if (loading) {
     return (
@@ -214,11 +255,21 @@ const History = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Deck</TableHead>
-                <TableHead>Score</TableHead>
-                <TableHead>Accuracy</TableHead>
-                <TableHead>Time</TableHead>
+                <TableHead onClick={() => toggleSort('date')} className="cursor-pointer hover:bg-muted/50">
+                  Date <ArrowUpDown className="inline h-4 w-4 ml-1" />
+                </TableHead>
+                <TableHead onClick={() => toggleSort('deck')} className="cursor-pointer hover:bg-muted/50">
+                  Deck <ArrowUpDown className="inline h-4 w-4 ml-1" />
+                </TableHead>
+                <TableHead onClick={() => toggleSort('score')} className="cursor-pointer hover:bg-muted/50">
+                  Score <ArrowUpDown className="inline h-4 w-4 ml-1" />
+                </TableHead>
+                <TableHead onClick={() => toggleSort('accuracy')} className="cursor-pointer hover:bg-muted/50">
+                  Accuracy <ArrowUpDown className="inline h-4 w-4 ml-1" />
+                </TableHead>
+                <TableHead onClick={() => toggleSort('time')} className="cursor-pointer hover:bg-muted/50">
+                  Time <ArrowUpDown className="inline h-4 w-4 ml-1" />
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

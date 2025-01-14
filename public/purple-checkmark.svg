@@ -1,3 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-  <polyline points="20 6 9 17 4 12"></polyline>
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 1000 1000">
+  <path fill="#8B5CF6" d="M800 200H600c0-55.2-44.8-100-100-100H200c-55.2 0-100 44.8-100 100v600c0 55.2 44.8 100 100 100h600c55.2 0 100-44.8 100-100V300c0-55.2-44.8-100-100-100zM350 750c-27.6 0-50-22.4-50-50s22.4-50 50-50 50 22.4 50 50-22.4 50-50 50zm300-200H350c-27.6 0-50-22.4-50-50s22.4-50 50-50h300c27.6 0 50 22.4 50 50s-22.4 50-50 50zm0-200H350c-27.6 0-50-22.4-50-50s22.4-50 50-50h300c27.6 0 50 22.4 50 50s-22.4 50-50 50z"/>
+  <circle cx="700" cy="700" r="150" fill="#8B5CF6"/>
+  <path fill="white" d="M650 700l35 35 65-65" stroke="white" stroke-width="20"/>
 </svg>

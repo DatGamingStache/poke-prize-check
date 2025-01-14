@@ -31,24 +31,24 @@ const HandDisplay = ({ hand }: HandDisplayProps) => {
   }, [hand]);
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
       {hand.map((card, index) => (
-        <Card key={index} className="p-2 text-center animate-fade-in select-none">
+        <Card key={index} className="p-1 text-center animate-fade-in select-none">
           {loading ? (
-            <Skeleton className="w-full h-64" />
+            <Skeleton className="w-full h-32" />
           ) : cardImages[card] ? (
-            <div className="space-y-2">
+            <div className="space-y-1">
               <img
                 src={cardImages[card]?.images.small}
                 alt={card}
-                className="w-full rounded-lg"
+                className="w-full h-auto rounded-sm object-contain"
                 loading="lazy"
               />
-              <p className="text-sm font-medium">{card}</p>
+              <p className="text-xs font-medium truncate px-1">{card}</p>
             </div>
           ) : (
-            <div className="h-64 flex items-center justify-center">
-              <p className="text-sm">{card}</p>
+            <div className="h-32 flex items-center justify-center">
+              <p className="text-xs">{card}</p>
             </div>
           )}
         </Card>

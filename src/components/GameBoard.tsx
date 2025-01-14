@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Timer from "./Timer";
+import PrizeGuesses from "./PrizeGuesses";
 import { useToast } from "@/hooks/use-toast";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface GameBoardProps {
   decklist: string;
@@ -30,8 +27,6 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
   const [timeSpent, setTimeSpent] = useState(0);
   const [remainingDeck, setRemainingDeck] = useState<string[]>([]);
   const [uniqueCards, setUniqueCards] = useState<string[]>([]);
-  const [open, setOpen] = useState(false);
-  const [selectedPrizeIndex, setSelectedPrizeIndex] = useState<number | null>(null);
   const { toast } = useToast();
 
   const parseDeckList = (decklist: string) => {
@@ -92,17 +87,15 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
     setGuesses([]);
   }, [decklist, toast]);
 
-  const handleCardGuess = (cardName: string, index: number) => {
-    if (guesses.length >= 6) return;
-    
+  const handleCardGuess = (value: string, index: number) => {
     const newGuesses = [...guesses];
-    newGuesses[index] = cardName;
+    newGuesses[index] = value;
     setGuesses(newGuesses);
-    setOpen(false);
   };
 
   const handleSubmitGuesses = () => {
-    if (guesses.length !== 6) {
+    const filledGuesses = guesses.filter(Boolean);
+    if (filledGuesses.length !== 6) {
       toast({
         title: "Error",
         description: "Please make 6 prize card guesses",
@@ -144,56 +137,11 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
           </div>
         </div>
 
-        <div className="mt-8 space-y-6">
-          <h3 className="text-lg font-medium">Prize Guesses</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {Array(6).fill(null).map((_, index) => (
-              <Popover key={index} open={open && selectedPrizeIndex === index} onOpenChange={(isOpen) => {
-                setOpen(isOpen);
-                if (isOpen) setSelectedPrizeIndex(index);
-              }}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    className={cn(
-                      "w-full justify-between",
-                      !guesses[index] && "text-muted-foreground"
-                    )}
-                  >
-                    {guesses[index] || "Click to guess"}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search cards..." />
-                    <CommandEmpty>No cards found.</CommandEmpty>
-                    <CommandGroup>
-                      <ScrollArea className="h-48">
-                        {uniqueCards.map((card) => (
-                          <CommandItem
-                            key={card}
-                            value={card}
-                            onSelect={() => handleCardGuess(card, index)}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                guesses[index] === card ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            {card}
-                          </CommandItem>
-                        ))}
-                      </ScrollArea>
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            ))}
-          </div>
-        </div>
+        <PrizeGuesses
+          guesses={guesses}
+          uniqueCards={uniqueCards}
+          onGuessChange={handleCardGuess}
+        />
 
         <div className="mt-8 space-y-4">
           <Button 

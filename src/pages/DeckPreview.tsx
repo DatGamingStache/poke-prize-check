@@ -17,6 +17,8 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 interface DeckPreviewProps {
   id: string;
@@ -27,11 +29,24 @@ interface DeckPreviewProps {
 const DeckPreview = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const deck = location.state as DeckPreviewProps;
+  const { toast } = useToast();
+  const deck = location.state as DeckPreviewProps | null;
+
+  useEffect(() => {
+    if (!deck) {
+      toast({
+        title: "Error",
+        description: "No deck data found. Redirecting to decks page.",
+        variant: "destructive",
+      });
+      navigate("/decks");
+    }
+  }, [deck, navigate, toast]);
 
   const { data: deckStats } = useQuery({
-    queryKey: ["deckStats", deck.id],
+    queryKey: ["deckStats", deck?.id],
     queryFn: async () => {
+      if (!deck?.id) return [];
       const { data } = await supabase
         .from("game_session_analytics")
         .select("*")
@@ -39,11 +54,13 @@ const DeckPreview = () => {
         .order("created_at", { ascending: true });
       return data || [];
     },
+    enabled: !!deck?.id,
   });
 
   const { data: cardStats } = useQuery({
-    queryKey: ["cardStats", deck.id],
+    queryKey: ["cardStats", deck?.id],
     queryFn: async () => {
+      if (!deck?.id) return [];
       const { data } = await supabase
         .from("card_guess_analytics")
         .select("*")
@@ -70,7 +87,12 @@ const DeckPreview = () => {
         .sort((a, b) => b.successRate - a.successRate)
         .slice(0, 10);
     },
+    enabled: !!deck?.id,
   });
+
+  if (!deck) {
+    return null;
+  }
 
   const handlePlay = () => {
     navigate("/game", {

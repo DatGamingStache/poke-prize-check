@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, LogOut, Pencil, Check, X, Eye, History, ChartBar, Search, Trash2 } from "lucide-react";
+import { Plus, LogOut, Pencil, Check, X, Eye, History, ChartBar, Search, Trash2, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -74,13 +74,19 @@ const DeckList = () => {
     setFilteredDecks(data || []);
   };
 
-  const handleDeckSelect = (deck: Deck) => {
-    navigate("/game", { 
-      state: { 
-        decklist: deck.cards,
-        deckId: deck.id
-      } 
-    });
+  const handleDeckSelect = (deck: Deck, isPlay: boolean = false) => {
+    if (isPlay) {
+      navigate("/game", { 
+        state: { 
+          decklist: deck.cards,
+          deckId: deck.id
+        } 
+      });
+    } else {
+      navigate("/deck-preview", {
+        state: deck
+      });
+    }
   };
 
   const handleLogout = async () => {
@@ -237,7 +243,8 @@ const DeckList = () => {
             {filteredDecks.map((deck) => (
               <Card
                 key={deck.id}
-                className="p-4 hover:bg-accent transition-colors min-w-[300px]"
+                className="p-4 hover:bg-accent transition-colors cursor-pointer"
+                onClick={() => !editingDeckId && handleDeckSelect(deck)}
               >
                 <div className="flex justify-between items-start mb-2">
                   {editingDeckId === deck.id ? (
@@ -271,10 +278,11 @@ const DeckList = () => {
                           variant="ghost"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setPreviewDeck(deck);
+                            handleDeckSelect(deck, true);
                           }}
+                          className="text-primary hover:text-primary"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Play className="h-4 w-4" />
                         </Button>
                         <Button
                           size="icon"
@@ -301,14 +309,9 @@ const DeckList = () => {
                     </>
                   )}
                 </div>
-                <div
-                  className="cursor-pointer"
-                  onClick={() => !editingDeckId && handleDeckSelect(deck)}
-                >
-                  <p className="text-sm text-muted-foreground">
-                    Created: {new Date(deck.created_at).toLocaleDateString()}
-                  </p>
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  Created: {new Date(deck.created_at).toLocaleDateString()}
+                </p>
               </Card>
             ))}
           </div>

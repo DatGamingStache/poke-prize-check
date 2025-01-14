@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      card_images: {
+        Row: {
+          card_name: string
+          card_number: string | null
+          created_at: string
+          id: string
+          image_url: string
+          set_code: string | null
+        }
+        Insert: {
+          card_name: string
+          card_number?: string | null
+          created_at?: string
+          id?: string
+          image_url: string
+          set_code?: string | null
+        }
+        Update: {
+          card_name?: string
+          card_number?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          set_code?: string | null
+        }
+        Relationships: []
+      }
       decklists: {
         Row: {
           cards: string

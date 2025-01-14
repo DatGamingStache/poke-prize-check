@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface PokemonCard {
   id: string;
   name: string;
@@ -9,9 +11,6 @@ export interface PokemonCard {
 
 export const searchCard = async (cardName: string): Promise<PokemonCard | null> => {
   try {
-    const apiKey = import.meta.env.VITE_POKEMON_TCG_API_KEY;
-    console.log('Using API Key:', apiKey ? 'Present' : 'Missing');
-    
     // Parse the card string to extract name, set, and number
     const matches = cardName.match(/^(.*?)(?:\s+([A-Z]{2,4})\s*(\d+))?$/);
     if (!matches) {
@@ -20,15 +19,38 @@ export const searchCard = async (cardName: string): Promise<PokemonCard | null> 
     }
 
     const [, baseName, setCode, cardNumber] = matches;
+
+    // First, check our cache
+    const { data: cachedCard } = await supabase
+      .from('card_images')
+      .select('*')
+      .eq('card_name', baseName.trim())
+      .eq('set_code', setCode || null)
+      .eq('card_number', cardNumber || null)
+      .single();
+
+    if (cachedCard) {
+      console.log('Found cached image for:', baseName);
+      return {
+        id: cachedCard.id,
+        name: cachedCard.card_name,
+        images: {
+          small: cachedCard.image_url,
+          large: cachedCard.image_url,
+        },
+      };
+    }
+
+    // If not in cache, search the API
+    const apiKey = import.meta.env.VITE_POKEMON_TCG_API_KEY;
+    console.log('Using API Key:', apiKey ? 'Present' : 'Missing');
     
-    // Try first with exact matching
     let query = `name:"${baseName.trim()}"`;
     if (setCode && cardNumber) {
-      // Try with exact set code first
       query += ` (set.ptcgoCode:${setCode} OR set.id:${setCode.toLowerCase()}) number:${cardNumber}`;
     }
 
-    console.log('Searching with query:', query);
+    console.log('Searching API with query:', query);
 
     const response = await fetch(
       `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(query)}&pageSize=1`,
@@ -56,7 +78,6 @@ export const searchCard = async (cardName: string): Promise<PokemonCard | null> 
     if (!data.data || data.data.length === 0) {
       console.log('No exact match found, trying flexible search for:', baseName);
       
-      // Try just the name and number if we had a set code
       if (setCode && cardNumber) {
         query = `name:"${baseName.trim()}" number:${cardNumber}`;
         const flexibleResponse = await fetch(
@@ -71,8 +92,18 @@ export const searchCard = async (cardName: string): Promise<PokemonCard | null> 
         if (flexibleResponse.ok) {
           const flexibleData = await flexibleResponse.json();
           if (flexibleData.data && flexibleData.data.length > 0) {
-            console.log('Found card with flexible search:', flexibleData.data[0].name);
-            return flexibleData.data[0];
+            const card = flexibleData.data[0];
+            console.log('Found card with flexible search:', card.name);
+            
+            // Cache the result
+            await supabase.from('card_images').insert({
+              card_name: baseName.trim(),
+              image_url: card.images.small,
+              set_code: setCode,
+              card_number: cardNumber,
+            });
+
+            return card;
           }
         }
       }
@@ -81,7 +112,17 @@ export const searchCard = async (cardName: string): Promise<PokemonCard | null> 
       return null;
     }
 
-    return data.data[0] || null;
+    const card = data.data[0];
+
+    // Cache the result
+    await supabase.from('card_images').insert({
+      card_name: baseName.trim(),
+      image_url: card.images.small,
+      set_code: setCode,
+      card_number: cardNumber,
+    });
+
+    return card;
   } catch (error) {
     console.error('Error fetching card:', error);
     return null;

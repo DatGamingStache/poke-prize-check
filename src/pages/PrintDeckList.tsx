@@ -1,8 +1,10 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 interface UserProfile {
   display_name: string;
@@ -14,6 +16,7 @@ interface UserProfile {
 
 const PrintDeckList = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [deck, setDeck] = React.useState<{ name: string; cards: string } | null>(null);
   const [profile, setProfile] = React.useState<UserProfile | null>(null);
 
@@ -93,6 +96,15 @@ const PrintDeckList = () => {
   return (
     <div className="min-h-screen bg-white p-8">
       <div className="max-w-7xl mx-auto">
+        <Button 
+          variant="outline" 
+          className="mb-6"
+          onClick={() => navigate(`/decks/${id}`)}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Deck
+        </Button>
+        
         <div className="grid grid-cols-5 gap-8">
           {/* Left side - Player Info */}
           <div className="col-span-2 space-y-4">

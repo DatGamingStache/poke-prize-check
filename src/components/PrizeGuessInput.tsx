@@ -26,17 +26,31 @@ const PrizeGuessInput = ({
   const [inputValue, setInputValue] = useState(value);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const highlightedItemRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setInputValue(value);
   }, [value]);
 
-  // Reset highlighted index when input becomes active
   useEffect(() => {
     if (activeSuggestionIndex === index) {
       setHighlightedIndex(0);
     }
   }, [activeSuggestionIndex, index]);
+
+  useEffect(() => {
+    if (highlightedItemRef.current && listRef.current) {
+      const listRect = listRef.current.getBoundingClientRect();
+      const itemRect = highlightedItemRef.current.getBoundingClientRect();
+
+      if (itemRect.bottom > listRect.bottom) {
+        highlightedItemRef.current.scrollIntoView({ block: 'end', behavior: 'smooth' });
+      } else if (itemRect.top < listRect.top) {
+        highlightedItemRef.current.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }
+    }
+  }, [highlightedIndex]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -105,7 +119,6 @@ const PrizeGuessInput = ({
         const selectedCard = filteredCards[highlightedIndex];
         if (selectedCard) {
           handleSelect(selectedCard);
-          // Find and focus the next empty input
           const nextEmptyIndex = findNextEmptyIndex();
           if (nextEmptyIndex !== -1) {
             const nextInput = document.querySelector(`input[data-index="${nextEmptyIndex}"]`);
@@ -145,12 +158,13 @@ const PrizeGuessInput = ({
           <Command className="rounded-lg border shadow-md bg-white dark:bg-gray-800">
             <CommandList>
               <CommandEmpty>No cards found.</CommandEmpty>
-              <CommandGroup className="max-h-48 overflow-auto">
+              <CommandGroup ref={listRef} className="max-h-48 overflow-auto">
                 {filteredCards.map((card, idx) => (
                   <CommandItem
                     key={card}
                     value={card}
                     onSelect={() => handleSelect(card)}
+                    ref={idx === highlightedIndex ? highlightedItemRef : null}
                     className={`cursor-pointer ${
                       idx === highlightedIndex ? 'bg-gray-100 dark:bg-gray-700' : ''
                     }`}

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
 interface UserProfile {
-  display_name: string;
   player_name: string | null;
   player_id: string | null;
   birthdate: string | null;

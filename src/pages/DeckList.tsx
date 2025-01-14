@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, LogOut, Pencil, Check, X, Eye, History, ChartBar, Search } from "lucide-react";
+import { Plus, LogOut, Pencil, Check, X, Eye, History, ChartBar, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -75,6 +75,31 @@ const DeckList = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/login");
+  };
+
+  const handleDeleteDeck = async (e: React.MouseEvent, deckId: string) => {
+    e.stopPropagation();
+    
+    const { error } = await supabase
+      .from("decklists")
+      .delete()
+      .eq("id", deckId);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete deck",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Success",
+      description: "Deck deleted successfully",
+    });
+
+    loadDecks();
   };
 
   const startEditing = (deck: Deck) => {
@@ -250,6 +275,14 @@ const DeckList = () => {
                           }}
                         >
                           <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={(e) => handleDeleteDeck(e, deck.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </>

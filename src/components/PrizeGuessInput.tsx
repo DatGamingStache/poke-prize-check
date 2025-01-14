@@ -31,7 +31,7 @@ const PrizeGuessInput = ({ index, value, uniqueCards, onChange }: PrizeGuessInpu
   ) || [];
 
   return (
-    <div className="relative">
+    <div className="relative" style={{ zIndex: 50 - index }}>
       <Input
         value={inputValue}
         onChange={handleInputChange}
@@ -40,7 +40,7 @@ const PrizeGuessInput = ({ index, value, uniqueCards, onChange }: PrizeGuessInpu
         className="w-full"
       />
       {showSuggestions && inputValue && (
-        <div className="absolute z-50 w-full mt-1">
+        <div className="absolute w-full mt-1">
           <Command className="rounded-lg border shadow-md">
             <CommandList>
               <CommandInput placeholder="Search cards..." value={inputValue} onValueChange={setInputValue} />

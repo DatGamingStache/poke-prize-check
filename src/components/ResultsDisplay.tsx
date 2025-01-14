@@ -13,6 +13,10 @@ interface ResultsDisplayProps {
 
 const ResultsDisplay = ({ results }: ResultsDisplayProps) => {
   const accuracy = (results.correctGuesses / results.totalPrizes) * 100;
+  
+  // Convert milliseconds to minutes and seconds for display
+  const minutes = Math.floor((results.timeSpent / 1000) / 60);
+  const seconds = Math.floor((results.timeSpent / 1000) % 60);
 
   return (
     <div className="glass-card p-6 rounded-lg space-y-6 animate-fade-in">
@@ -54,7 +58,7 @@ const ResultsDisplay = ({ results }: ResultsDisplayProps) => {
           Accuracy: {accuracy.toFixed(1)}%
         </p>
         <p className="text-lg">
-          Time: {Math.floor(results.timeSpent / 60)}:{(results.timeSpent % 60).toString().padStart(2, '0')}
+          Time: {minutes}:{seconds.toString().padStart(2, '0')}
         </p>
       </div>
     </div>

@@ -18,7 +18,8 @@ const Timer = ({ onTimeUpdate, reset }: TimerProps) => {
     const interval = setInterval(() => {
       setSeconds(prev => {
         const newTime = prev + 1;
-        onTimeUpdate(newTime);
+        // Convert to milliseconds before sending to parent
+        onTimeUpdate(newTime * 1000);
         return newTime;
       });
     }, 1000);

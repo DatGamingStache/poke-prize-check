@@ -56,7 +56,7 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
     return deck;
   };
 
-  useEffect(() => {
+  const initializeGame = () => {
     if (!decklist) return;
 
     const deck = parseDeckList(decklist);
@@ -82,7 +82,12 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
     setRemainingDeck(remaining);
     setUniqueCards(unique);
     setGuesses([]);
-  }, [decklist, toast]);
+    setTimeSpent(0);
+  };
+
+  useEffect(() => {
+    initializeGame();
+  }, [decklist]);
 
   const handleCardGuess = (value: string, index: number) => {
     const newGuesses = [...guesses];
@@ -137,6 +142,11 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
       actualPrizes: prizes,
       timeSpent,
     });
+  };
+
+  const handleRestartGame = () => {
+    initializeGame();
+    onRestart();
   };
 
   if (!decklist) {
@@ -204,7 +214,7 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
           </Button>
 
           <Button 
-            onClick={onRestart}
+            onClick={handleRestartGame}
             variant="outline"
             className="w-full"
           >

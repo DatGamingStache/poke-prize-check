@@ -101,6 +101,10 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
     setIsCheckingName(false);
   };
 
+  const getInitial = (name: string) => {
+    return name ? name.charAt(0).toUpperCase() : '?';
+  };
+
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -209,8 +213,8 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
     <div className="space-y-6">
       <div className="flex flex-col items-center gap-4">
         <Avatar className="h-24 w-24">
-          <AvatarImage src={profilePictureUrl || "/placeholder.svg"} />
-          <AvatarFallback>User</AvatarFallback>
+          <AvatarImage src={profilePictureUrl || undefined} alt={displayName} />
+          <AvatarFallback>{getInitial(displayName)}</AvatarFallback>
         </Avatar>
         <div className="flex items-center gap-2">
           <input

@@ -46,6 +46,7 @@ const DeckList: React.FC = () => {
   const [deletingDeckId, setDeletingDeckId] = useState<string | null>(null);
   const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -61,7 +62,7 @@ const DeckList: React.FC = () => {
 
       const { data, error } = await supabase
         .from('user_preferences')
-        .select('profile_picture_url')
+        .select('profile_picture_url, display_name')
         .maybeSingle();
 
       if (error) {
@@ -71,6 +72,7 @@ const DeckList: React.FC = () => {
 
       if (data) {
         setProfilePicture(data.profile_picture_url);
+        setDisplayName(data.display_name || '');
       }
     } catch (error) {
       console.error('Error in loadUserProfile:', error);
@@ -198,6 +200,10 @@ const DeckList: React.FC = () => {
     ));
   };
 
+  const getInitial = (name: string | null) => {
+    return name ? name.charAt(0).toUpperCase() : '?';
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -222,8 +228,8 @@ const DeckList: React.FC = () => {
             </Button>
             <Button variant="ghost" onClick={() => setShowProfileSettings(true)} className="p-2">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={profilePicture || "/placeholder.svg"} />
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarImage src={profilePicture || undefined} />
+                <AvatarFallback>{getInitial(displayName)}</AvatarFallback>
               </Avatar>
             </Button>
             <Button variant="outline" onClick={handleLogout} className="gap-2">

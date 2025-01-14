@@ -75,21 +75,29 @@ const DeckCard: React.FC<DeckCardProps> = ({
         ) : (
           <>
             <h3 className="font-semibold">{deck.name}</h3>
-            <div className="flex items-center space-x-3">
-              <Play 
-                className="h-5 w-5 text-green-500 hover:text-green-600 cursor-pointer transition-colors"
+            <div className="flex items-center space-x-2">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-green-500 hover:text-green-600"
                 onClick={(e) => {
                   e.stopPropagation();
                   onPlay();
                 }}
-              />
-              <Printer 
-                className="h-5 w-5 text-blue-500 hover:text-blue-600 cursor-pointer transition-colors"
+              >
+                <Play className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-blue-500 hover:text-blue-600"
                 onClick={(e) => {
                   e.stopPropagation();
                   window.open(`/decks/${deck.id}/print`, '_blank');
                 }}
-              />
+              >
+                <Printer className="h-4 w-4" />
+              </Button>
               <Button
                 size="icon"
                 variant="ghost"
@@ -107,7 +115,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
                   e.stopPropagation();
                   onDelete();
                 }}
-                className="text-destructive hover:text-destructive"
+                className="text-destructive hover:text-destructive/90"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

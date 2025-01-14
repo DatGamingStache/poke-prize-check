@@ -1,6 +1,7 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
@@ -89,8 +90,32 @@ const PrintDeckList = () => {
           Back to Deck
         </Button>
         
-        <div className="font-mono">
-          {formatDeckList(deck.cards)}
+        <div className="grid grid-cols-5 gap-8">
+          {/* Left side - Player Info */}
+          <div className="col-span-2 space-y-4">
+            <h2 className="text-2xl font-bold">Player Information</h2>
+            <div className="space-y-2">
+              <p><span className="font-semibold">Display Name:</span> {profile.display_name}</p>
+              {profile.player_name && (
+                <p><span className="font-semibold">Player Name:</span> {profile.player_name}</p>
+              )}
+              {profile.player_id && (
+                <p><span className="font-semibold">Player ID:</span> {profile.player_id}</p>
+              )}
+              {profile.birthdate && (
+                <p><span className="font-semibold">Birthdate:</span> {format(new Date(profile.birthdate), 'PP')}</p>
+              )}
+              {profile.division && (
+                <p><span className="font-semibold">Division:</span> {profile.division}</p>
+              )}
+              <p><span className="font-semibold">Print Date:</span> {format(new Date(), 'PPpp')}</p>
+            </div>
+          </div>
+
+          {/* Right side - Decklist */}
+          <div className="col-span-3">
+            <div className="font-mono">{formatDeckList(deck.cards)}</div>
+          </div>
         </div>
       </div>
     </div>

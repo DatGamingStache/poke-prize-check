@@ -49,19 +49,16 @@ const RemainingDeck = ({ remainingDeck }: RemainingDeckProps) => {
               key={index}
               className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/6"
             >
-              <Card className="p-2 h-48 flex items-center justify-center text-center select-none">
+              <Card className="p-2 h-32 flex items-center justify-center text-center select-none">
                 {loading ? (
                   <Skeleton className="w-full h-full" />
                 ) : cardImages[card] ? (
-                  <div className="space-y-2">
-                    <img
-                      src={cardImages[card]?.images.small}
-                      alt={card}
-                      className="w-full h-36 object-contain rounded-lg"
-                      loading="lazy"
-                    />
-                    <p className="text-xs font-medium truncate">{card}</p>
-                  </div>
+                  <img
+                    src={cardImages[card]?.images.small}
+                    alt={card}
+                    className="w-full h-full object-contain rounded-lg"
+                    loading="lazy"
+                  />
                 ) : (
                   <p className="text-sm">{card}</p>
                 )}

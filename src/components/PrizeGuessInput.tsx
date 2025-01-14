@@ -144,7 +144,6 @@ const PrizeGuessInput = ({
         <div className="absolute w-full mt-1">
           <Command className="rounded-lg border shadow-md bg-white dark:bg-gray-800">
             <CommandList>
-              <CommandInput placeholder="Search cards..." value={inputValue} onValueChange={setInputValue} />
               <CommandEmpty>No cards found.</CommandEmpty>
               <CommandGroup className="max-h-48 overflow-auto">
                 {filteredCards.map((card, idx) => (

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, LogOut, Pencil, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import DeckUploader from "@/components/DeckUploader";
@@ -17,6 +18,8 @@ interface Deck {
 const DeckList = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isCreating, setIsCreating] = useState(false);
+  const [editingDeckId, setEditingDeckId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -51,6 +54,49 @@ const DeckList = () => {
     navigate("/login");
   };
 
+  const startEditing = (deck: Deck) => {
+    setEditingDeckId(deck.id);
+    setEditingName(deck.name);
+  };
+
+  const cancelEditing = () => {
+    setEditingDeckId(null);
+    setEditingName("");
+  };
+
+  const saveDeckName = async (deckId: string) => {
+    if (!editingName.trim()) {
+      toast({
+        title: "Error",
+        description: "Deck name cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("decklists")
+      .update({ name: editingName })
+      .eq("id", deckId);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update deck name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Success",
+      description: "Deck name updated successfully",
+    });
+
+    setEditingDeckId(null);
+    loadDecks();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -62,6 +108,7 @@ const DeckList = () => {
               New Deck
             </Button>
             <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" />
               Logout
             </Button>
           </div>
@@ -70,14 +117,14 @@ const DeckList = () => {
         {isCreating ? (
           <div className="mt-8">
             <DeckUploader
-              onDeckSubmit={async (decklist: string) => {
+              onDeckSubmit={async (decklist: string, name: string) => {
                 try {
                   const { data: { user } } = await supabase.auth.getUser();
                   if (!user) throw new Error("Not authenticated");
 
                   const { error } = await supabase.from("decklists").insert({
                     user_id: user.id,
-                    name: `Deck ${decks.length + 1}`,
+                    name: name,
                     cards: decklist,
                   });
 
@@ -106,13 +153,55 @@ const DeckList = () => {
             {decks.map((deck) => (
               <Card
                 key={deck.id}
-                className="p-4 hover:bg-accent cursor-pointer transition-colors"
-                onClick={() => handleDeckSelect(deck)}
+                className="p-4 hover:bg-accent transition-colors"
               >
-                <h3 className="font-semibold mb-2">{deck.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  Created: {new Date(deck.created_at).toLocaleDateString()}
-                </p>
+                <div className="flex justify-between items-start mb-2">
+                  {editingDeckId === deck.id ? (
+                    <div className="flex items-center space-x-2 w-full">
+                      <Input
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => saveDeckName(deck.id)}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={cancelEditing}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <h3 className="font-semibold">{deck.name}</h3>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startEditing(deck);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+                <div
+                  className="cursor-pointer"
+                  onClick={() => !editingDeckId && handleDeckSelect(deck)}
+                >
+                  <p className="text-sm text-muted-foreground">
+                    Created: {new Date(deck.created_at).toLocaleDateString()}
+                  </p>
+                </div>
               </Card>
             ))}
           </div>

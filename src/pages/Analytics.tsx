@@ -5,8 +5,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, BarChart, Bar, Tooltip } from "recharts";
-import { Activity, TrendingUp, Database, ArrowLeft } from "lucide-react";
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  ResponsiveContainer, 
+  BarChart, 
+  Bar, 
+  Tooltip 
+} from "recharts";
+import { Activity, TrendingUp, Database, ArrowLeft, GameController } from "lucide-react";
 
 const Analytics = () => {
   const navigate = useNavigate();
@@ -38,7 +47,26 @@ const Analytics = () => {
     },
   });
 
-  // Calculate average accuracy properly
+  // Calculate games played per deck
+  const gamesPerDeck = React.useMemo(() => {
+    if (!sessionData) return [];
+    
+    const deckCounts = sessionData.reduce((acc: { [key: string]: number }, session) => {
+      if (!session.deck_name || !session.deck_id) return acc;
+      const key = session.deck_name;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    return Object.entries(deckCounts)
+      .map(([deck, count]) => ({
+        deck,
+        games: count
+      }))
+      .sort((a, b) => b.games - a.games);
+  }, [sessionData]);
+
+  // Calculate average accuracy
   const averageAccuracy = React.useMemo(() => {
     if (!sessionData?.length) return 0;
     const totalCorrect = sessionData.reduce((acc, curr) => acc + curr.correct_guesses, 0);
@@ -46,7 +74,7 @@ const Analytics = () => {
     return totalPrizes > 0 ? (totalCorrect / totalPrizes) * 100 : 0;
   }, [sessionData]);
 
-  // Process data for accuracy over time chart with proper date formatting
+  // Process data for accuracy over time chart
   const accuracyData = React.useMemo(() => {
     if (!sessionData) return [];
     return sessionData.map((session) => ({
@@ -55,7 +83,7 @@ const Analytics = () => {
     }));
   }, [sessionData]);
 
-  // Process data for card success rate chart with proper calculations
+  // Process data for card success rate chart
   const cardSuccessData = React.useMemo(() => {
     if (!cardData) return [];
     
@@ -77,8 +105,8 @@ const Analytics = () => {
         card,
         successRate: (stats.correct / stats.total) * 100,
       }))
-      .sort((a, b) => b.successRate - a.successRate) // Sort by success rate descending
-      .slice(0, 10); // Show only top 10 cards
+      .sort((a, b) => b.successRate - a.successRate)
+      .slice(0, 10);
   }, [cardData]);
 
   return (
@@ -135,6 +163,41 @@ const Analytics = () => {
       <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2">
         <Card className="w-full">
           <CardHeader>
+            <CardTitle>Games Played per Deck</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px] w-full">
+            {isSessionLoading ? (
+              <div className="flex h-full items-center justify-center">
+                <span className="text-muted-foreground">Loading...</span>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={gamesPerDeck} 
+                  layout="vertical"
+                  margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
+                >
+                  <XAxis type="number" />
+                  <YAxis 
+                    type="category"
+                    dataKey="deck"
+                    width={150}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <ChartTooltip />
+                  <Bar
+                    dataKey="games"
+                    fill="hsl(var(--primary))"
+                    radius={[0, 4, 4, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="w-full">
+          <CardHeader>
             <CardTitle>Accuracy Over Time</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px] w-full">
@@ -171,7 +234,7 @@ const Analytics = () => {
           </CardContent>
         </Card>
 
-        <Card className="w-full">
+        <Card className="w-full lg:col-span-2">
           <CardHeader>
             <CardTitle>Top 10 Card Success Rates</CardTitle>
           </CardHeader>

@@ -13,6 +13,18 @@ const DeckUploader = ({ onDeckSubmit, onCancel }: DeckUploaderProps) => {
   const [deckName, setDeckName] = useState("");
   const { toast } = useToast();
 
+  const countCards = (decklist: string): number => {
+    return decklist
+      .split('\n')
+      .reduce((total, line) => {
+        const match = line.match(/^(\d+)/);
+        if (match) {
+          return total + parseInt(match[1], 10);
+        }
+        return total;
+      }, 0);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!deckInput.trim()) {
@@ -31,6 +43,17 @@ const DeckUploader = ({ onDeckSubmit, onCancel }: DeckUploaderProps) => {
       });
       return;
     }
+
+    const cardCount = countCards(deckInput);
+    if (cardCount !== 60) {
+      toast({
+        title: "Error",
+        description: `Deck must contain exactly 60 cards. Current count: ${cardCount}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     onDeckSubmit(deckInput, deckName);
   };
 

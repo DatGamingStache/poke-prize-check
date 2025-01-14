@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import DeckUploader from "@/components/DeckUploader";
 import GameBoard from "@/components/GameBoard";
 import ResultsDisplay from "@/components/ResultsDisplay";
@@ -16,12 +16,18 @@ interface GameResult {
   timeSpent: number;
 }
 
+interface LocationState {
+  decklist?: string;
+}
+
 const Index = () => {
   const [decklist, setDecklist] = useState<string>("");
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
   const [gameStarted, setGameStarted] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  const state = location.state as LocationState;
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -32,6 +38,15 @@ const Index = () => {
     };
     checkAuth();
   }, [navigate]);
+
+  useEffect(() => {
+    if (state?.decklist) {
+      setDecklist(state.decklist);
+      setGameStarted(true);
+      // Clear the location state to prevent restarting the game on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [state]);
 
   const handleDeckSubmit = async (deck: string) => {
     try {
@@ -47,7 +62,7 @@ const Index = () => {
 
       const { error } = await supabase.from("decklists").insert({
         user_id: user.id,
-        name: "My Deck", // You might want to add a name input field later
+        name: "My Deck",
         cards: deck,
       });
 
@@ -85,15 +100,24 @@ const Index = () => {
     navigate("/login");
   };
 
+  const handleBackToDecks = () => {
+    navigate("/decks");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <h1 className="text-4xl font-bold">TCG Prize Predictor</h1>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </Button>
+          <div className="space-x-4">
+            <Button variant="outline" onClick={handleBackToDecks}>
+              Back to Decks
+            </Button>
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
 
         {!gameStarted && !gameResult && (

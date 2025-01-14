@@ -11,6 +11,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import DeckUploader from "@/components/DeckUploader";
@@ -30,6 +40,7 @@ const DeckList = () => {
   const [editingDeckId, setEditingDeckId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [previewDeck, setPreviewDeck] = useState<Deck | null>(null);
+  const [deletingDeckId, setDeletingDeckId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -77,9 +88,7 @@ const DeckList = () => {
     navigate("/login");
   };
 
-  const handleDeleteDeck = async (e: React.MouseEvent, deckId: string) => {
-    e.stopPropagation();
-    
+  const handleDeleteDeck = async (deckId: string) => {
     const { error } = await supabase
       .from("decklists")
       .delete()
@@ -99,6 +108,7 @@ const DeckList = () => {
       description: "Deck deleted successfully",
     });
 
+    setDeletingDeckId(null);
     loadDecks();
   };
 
@@ -279,7 +289,10 @@ const DeckList = () => {
                         <Button
                           size="icon"
                           variant="ghost"
-                          onClick={(e) => handleDeleteDeck(e, deck.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeletingDeckId(deck.id);
+                          }}
                           className="text-destructive hover:text-destructive"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -311,6 +324,26 @@ const DeckList = () => {
             </ScrollArea>
           </DialogContent>
         </Dialog>
+
+        <AlertDialog open={!!deletingDeckId} onOpenChange={(open) => !open && setDeletingDeckId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete your deck.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deletingDeckId && handleDeleteDeck(deletingDeckId)}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

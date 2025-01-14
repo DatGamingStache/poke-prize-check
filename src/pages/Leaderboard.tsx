@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 // Define types for our data structures
 type LeaderboardEntry = {
@@ -81,6 +82,15 @@ const Leaderboard = () => {
     }
   };
 
+  const getPlayerInitial = (displayName: string) => {
+    return displayName ? displayName.charAt(0).toUpperCase() : '?';
+  };
+
+  const calculateAccuracy = (entry: LeaderboardEntry) => {
+    if (!entry.total_games || entry.total_games === 0) return 0;
+    return (entry.total_correct_guesses / (entry.total_games * 6)) * 100;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -112,33 +122,40 @@ const Leaderboard = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {leaderboardData?.map((entry, index) => (
-                  <TableRow key={entry.user_id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        {getRankIcon(index)}
-                        <span>{index + 1}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={entry.user_preferences?.profile_picture_url || "/placeholder.svg"}
-                          alt="Profile"
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                        <span>{entry.user_preferences?.display_name || "Anonymous"}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">{entry.total_games}</TableCell>
-                    <TableCell className="text-right">
-                      {entry.total_correct_guesses}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {(entry.average_accuracy * 100).toFixed(1)}%
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {leaderboardData?.map((entry, index) => {
+                  const displayName = entry.user_preferences?.display_name || "Anonymous";
+                  return (
+                    <TableRow key={entry.user_id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {getRankIcon(index)}
+                          <span>{index + 1}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar>
+                            <AvatarImage 
+                              src={entry.user_preferences?.profile_picture_url || undefined} 
+                              alt={displayName} 
+                            />
+                            <AvatarFallback>
+                              {getPlayerInitial(displayName)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{displayName}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">{entry.total_games}</TableCell>
+                      <TableCell className="text-right">
+                        {entry.total_correct_guesses}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {calculateAccuracy(entry).toFixed(1)}%
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}

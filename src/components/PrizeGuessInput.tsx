@@ -41,7 +41,7 @@ const PrizeGuessInput = ({ index, value, uniqueCards, onChange }: PrizeGuessInpu
       />
       {showSuggestions && inputValue && (
         <div className="absolute w-full mt-1">
-          <Command className="rounded-lg border shadow-md">
+          <Command className="rounded-lg border shadow-md bg-white dark:bg-gray-800">
             <CommandList>
               <CommandInput placeholder="Search cards..." value={inputValue} onValueChange={setInputValue} />
               <CommandEmpty>No cards found.</CommandEmpty>
@@ -51,7 +51,7 @@ const PrizeGuessInput = ({ index, value, uniqueCards, onChange }: PrizeGuessInpu
                     key={card}
                     value={card}
                     onSelect={() => handleSelect(card)}
-                    className="cursor-pointer"
+                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
                     {card}
                   </CommandItem>

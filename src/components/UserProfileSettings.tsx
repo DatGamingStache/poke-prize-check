@@ -26,26 +26,27 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: preferences, error } = await supabase
+      const { data, error } = await supabase
         .from('user_preferences')
         .select('profile_picture_url, share_game_history')
-        .eq('user_id', user.id)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading preferences:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load user preferences",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      // If no preferences exist, create them
-      if (!preferences) {
-        const { error: insertError } = await supabase
-          .from('user_preferences')
-          .insert({ user_id: user.id });
-
-        if (insertError) throw insertError;
-      } else {
-        setShowOnLeaderboard(preferences.share_game_history);
-        setProfilePictureUrl(preferences.profile_picture_url);
+      if (data) {
+        setShowOnLeaderboard(data.share_game_history);
+        setProfilePictureUrl(data.profile_picture_url);
       }
     } catch (error) {
+      console.error('Error in loadUserPreferences:', error);
       toast({
         title: "Error",
         description: "Failed to load user preferences",
@@ -89,6 +90,7 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
         description: "Profile picture updated successfully",
       });
     } catch (error) {
+      console.error('Error uploading image:', error);
       toast({
         title: "Error",
         description: "Failed to update profile picture",
@@ -117,6 +119,7 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
         description: `You will ${checked ? 'now' : 'no longer'} appear on the leaderboard`,
       });
     } catch (error) {
+      console.error('Error updating leaderboard preferences:', error);
       toast({
         title: "Error",
         description: "Failed to update leaderboard preferences",

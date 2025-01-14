@@ -75,18 +75,14 @@ const DeckCard: React.FC<DeckCardProps> = ({
         ) : (
           <>
             <h3 className="font-semibold">{deck.name}</h3>
-            <div className="flex space-x-2">
-              <Button
-                size="icon"
-                variant="default"
+            <div className="flex items-center space-x-3">
+              <Play 
+                className="h-5 w-5 text-green-500 hover:text-green-600 cursor-pointer transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
                   onPlay();
                 }}
-                className="bg-green-500 hover:bg-green-600"
-              >
-                <Play className="h-4 w-4" />
-              </Button>
+              />
               <Button
                 size="icon"
                 variant="ghost"

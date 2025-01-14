@@ -25,7 +25,7 @@ const Login = () => {
       <div className="w-full max-w-md flex-1 flex flex-col items-center justify-center">
         {/* Header Section */}
         <div className="text-center mb-8 space-y-2">
-          <h1 className="text-4xl font-bold text-foreground">DeckCheck!</h1>
+          <h1 className="text-4xl font-bold text-foreground">PokéCheck</h1>
           <p className="text-lg text-muted-foreground max-w-md">
             A Pokémon prize checking practice and analytics tool, with decklist printing functionality
           </p>

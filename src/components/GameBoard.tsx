@@ -73,11 +73,8 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
     const shuffledDeck = [...deck].sort(() => Math.random() - 0.5);
     
     const initialHand = shuffledDeck.slice(0, 7);
-    
     const prizesCards = shuffledDeck.slice(7, 13);
-    
     const remaining = shuffledDeck.slice(13);
-    
     const unique = Array.from(new Set(deck)).sort();
 
     setHand(initialHand);
@@ -111,16 +108,26 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
     const prizeNames = prizes.map(extractCardName);
     const guessNames = guesses.map(extractCardName);
 
-    const remainingPrizes = [...prizeNames];
-    const remainingGuesses = [...guessNames];
-    let correctGuesses = 0;
+    // Create a map to count occurrences of each card in prizes
+    const prizeCardCounts = new Map<string, number>();
+    prizeNames.forEach(name => {
+      prizeCardCounts.set(name, (prizeCardCounts.get(name) || 0) + 1);
+    });
 
-    remainingPrizes.forEach((prizeName) => {
-      const guessIndex = remainingGuesses.findIndex(guess => guess === prizeName);
-      if (guessIndex !== -1) {
-        remainingGuesses.splice(guessIndex, 1);
-        correctGuesses++;
-      }
+    // Create a map to count occurrences of each card in guesses
+    const guessCardCounts = new Map<string, number>();
+    guessNames.forEach(name => {
+      guessCardCounts.set(name, (guessCardCounts.get(name) || 0) + 1);
+    });
+
+    let correctGuesses = 0;
+    // For each unique prize card
+    prizeCardCounts.forEach((prizeCount, prizeName) => {
+      // Get the number of times this card was guessed (0 if not guessed)
+      const guessCount = guessCardCounts.get(prizeName) || 0;
+      // Add the minimum of prize count and guess count
+      // This ensures we don't count more matches than actual instances
+      correctGuesses += Math.min(prizeCount, guessCount);
     });
 
     onGameComplete({

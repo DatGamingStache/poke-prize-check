@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Play, Pencil, Trash2, Check, X } from "lucide-react";
+import { Play, Printer, Pencil, Trash2, Check, X } from "lucide-react";
 
 interface DeckCardProps {
   deck: {
@@ -81,6 +81,13 @@ const DeckCard: React.FC<DeckCardProps> = ({
                 onClick={(e) => {
                   e.stopPropagation();
                   onPlay();
+                }}
+              />
+              <Printer 
+                className="h-5 w-5 text-blue-500 hover:text-blue-600 cursor-pointer transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(`/decks/${deck.id}/print`, '_blank');
                 }}
               />
               <Button

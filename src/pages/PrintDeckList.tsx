@@ -68,9 +68,9 @@ const PrintDeckList = () => {
   // Function to process the text and make specific headers bold
   const formatDeckList = (text: string) => {
     return text.split('\n').map((line, index) => {
-      if (line.trim() === 'Pokemon:' || 
-          line.trim() === 'Trainer:' || 
-          line.trim() === 'Energy:') {
+      if (line.startsWith('Pokemon:') || 
+          line.startsWith('Trainer:') || 
+          line.startsWith('Energy:')) {
         return <div key={index} className="font-bold">{line}</div>;
       }
       return <div key={index}>{line}</div>;

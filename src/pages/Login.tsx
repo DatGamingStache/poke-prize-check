@@ -13,7 +13,7 @@ const Login = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
-        navigate("/");
+        navigate("/decks");
       }
     });
 
@@ -21,7 +21,7 @@ const Login = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted p-6">
       <Card className="w-full max-w-md p-6 space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">Welcome</h1>
@@ -41,15 +41,10 @@ const Login = () => {
             variables: {
               default: {
                 colors: {
-                  brand: 'hsl(var(--primary))',
-                  brandAccent: 'hsl(var(--primary))',
+                  brand: 'rgb(var(--primary))',
+                  brandAccent: 'rgb(var(--primary))',
                 }
               }
-            },
-            className: {
-              container: 'space-y-4',
-              button: 'w-full',
-              input: 'rounded-md',
             }
           }}
           providers={[]}

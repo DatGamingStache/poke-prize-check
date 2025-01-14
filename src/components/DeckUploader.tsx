@@ -5,9 +5,10 @@ import { useToast } from "@/hooks/use-toast";
 
 interface DeckUploaderProps {
   onDeckSubmit: (decklist: string) => void;
+  onCancel?: () => void;
 }
 
-const DeckUploader = ({ onDeckSubmit }: DeckUploaderProps) => {
+const DeckUploader = ({ onDeckSubmit, onCancel }: DeckUploaderProps) => {
   const [deckInput, setDeckInput] = useState("");
   const { toast } = useToast();
 
@@ -34,9 +35,16 @@ const DeckUploader = ({ onDeckSubmit }: DeckUploaderProps) => {
           onChange={(e) => setDeckInput(e.target.value)}
           placeholder="Enter your decklist here..."
         />
-        <Button type="submit" className="w-full">
-          Start Testing
-        </Button>
+        <div className="flex space-x-4">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+              Cancel
+            </Button>
+          )}
+          <Button type="submit" className="flex-1">
+            Save Deck
+          </Button>
+        </div>
       </div>
     </form>
   );

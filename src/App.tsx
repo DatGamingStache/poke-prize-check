@@ -9,12 +9,12 @@ import DeckList from "@/pages/DeckList";
 import Game from "@/pages/Game";
 import History from "@/pages/History";
 import GameDetails from "@/pages/GameDetails";
+import Analytics from "@/pages/Analytics";
 
-// Create a new QueryClient instance outside of the component
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
       retry: 1,
     },
   },
@@ -34,6 +34,7 @@ function App() {
               <Route path="/game" element={<Game />} />
               <Route path="/history" element={<History />} />
               <Route path="/history/:id" element={<GameDetails />} />
+              <Route path="/analytics" element={<Analytics />} />
             </Routes>
           </BrowserRouter>
         </ThemeProvider>

@@ -10,25 +10,35 @@ import Game from "@/pages/Game";
 import History from "@/pages/History";
 import GameDetails from "@/pages/GameDetails";
 
-const queryClient = new QueryClient();
+// Create a new QueryClient instance outside of the component
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <Toaster />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/decks" element={<DeckList />} />
-            <Route path="/game" element={<Game />} />
-            <Route path="/history" element={<History />} />
-            <Route path="/history/:id" element={<GameDetails />} />
-          </Routes>
-        </BrowserRouter>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+          <Toaster position="top-right" />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/decks" element={<DeckList />} />
+              <Route path="/game" element={<Game />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/history/:id" element={<GameDetails />} />
+            </Routes>
+          </BrowserRouter>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </React.StrictMode>
   );
 }
 

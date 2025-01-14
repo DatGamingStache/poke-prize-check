@@ -109,7 +109,11 @@ const History = () => {
             </TableHeader>
             <TableBody>
               {sessions.map((session) => (
-                <TableRow key={session.id}>
+                <TableRow 
+                  key={session.id}
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => navigate(`/history/${session.id}`)}
+                >
                   <TableCell>
                     {new Date(session.created_at).toLocaleDateString()}
                   </TableCell>
@@ -117,7 +121,10 @@ const History = () => {
                   <TableCell>
                     {session.correct_guesses} / {session.total_prizes}
                   </TableCell>
-                  <TableCell>{Math.round(session.time_spent / 1000)}s</TableCell>
+                  <TableCell>
+                    {Math.floor((session.time_spent / 1000) / 60)}:
+                    {Math.floor((session.time_spent / 1000) % 60).toString().padStart(2, '0')}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

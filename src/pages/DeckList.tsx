@@ -48,15 +48,48 @@ const DeckList: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Add session check on mount
   useEffect(() => {
-    loadDecks();
-    loadUserProfile();
+    checkSession();
   }, []);
+
+  const checkSession = async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      
+      if (!session) {
+        navigate("/login");
+        return;
+      }
+
+      // Only load data if we have a valid session
+      loadDecks();
+      loadUserProfile();
+    } catch (error) {
+      console.error('Session check error:', error);
+      navigate("/login");
+    }
+  };
+
+  // Add auth state change listener
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        navigate("/login");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const loadUserProfile = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        navigate("/login");
+        return;
+      }
 
       const { data, error } = await supabase
         .from('user_preferences')
@@ -74,6 +107,11 @@ const DeckList: React.FC = () => {
       }
     } catch (error) {
       console.error('Error in loadUserProfile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load user profile",
+        variant: "destructive",
+      });
     }
   };
 
@@ -85,22 +123,30 @@ const DeckList: React.FC = () => {
   }, [searchQuery, decks]);
 
   const loadDecks = async () => {
-    const { data, error } = await supabase
-      .from("decklists")
-      .select("*")
-      .order("created_at", { ascending: false });
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/login");
+        return;
+      }
 
-    if (error) {
+      const { data, error } = await supabase
+        .from("decklists")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      setDecks(data || []);
+      setFilteredDecks(data || []);
+    } catch (error) {
+      console.error('Error loading decks:', error);
       toast({
         title: "Error",
         description: "Failed to load decks",
         variant: "destructive",
       });
-      return;
     }
-
-    setDecks(data || []);
-    setFilteredDecks(data || []);
   };
 
   const handleDeckSelect = (deck: Deck, isPlay: boolean = false) => {

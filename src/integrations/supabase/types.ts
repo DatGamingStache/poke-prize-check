@@ -84,6 +84,27 @@ export type Database = {
           },
         ]
       }
+      user_preferences: {
+        Row: {
+          created_at: string
+          share_game_history: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          share_game_history?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          share_game_history?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       card_guess_analytics: {
@@ -125,6 +146,15 @@ export type Database = {
           id: string | null
           time_spent: number | null
           total_prizes: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      leaderboard_view: {
+        Row: {
+          average_accuracy: number | null
+          total_correct_guesses: number | null
+          total_games: number | null
           user_id: string | null
         }
         Relationships: []

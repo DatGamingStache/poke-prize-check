@@ -124,10 +124,12 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
   return (
     <div className="space-y-8">
       <div className="glass-card p-6 rounded-lg">
-        <Timer onTimeUpdate={setTimeSpent} />
-        
         <div className="space-y-6">
-          <h3 className="text-lg font-medium">Your Hand ({hand.length} cards)</h3>
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-medium">Your Hand ({hand.length} cards)</h3>
+            <Timer onTimeUpdate={setTimeSpent} />
+          </div>
+          
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {hand.map((card, index) => (
               <Card key={index} className="p-4 text-center animate-fade-in">

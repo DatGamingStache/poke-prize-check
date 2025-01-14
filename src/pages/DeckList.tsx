@@ -1,12 +1,13 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, LogOut, Pencil, Check, X, Eye, History, ChartBar, Search, Trash2, Play, Trophy, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import DeckUploader from "@/components/DeckUploader";
+import UserProfileSettings from "@/components/UserProfileSettings";
+import DeckListHeader from "@/components/deck/DeckListHeader";
+import DeckSearch from "@/components/deck/DeckSearch";
+import DeckCard from "@/components/deck/DeckCard";
 import {
   Dialog,
   DialogContent,
@@ -23,10 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import DeckUploader from "@/components/DeckUploader";
-import UserProfileSettings from "@/components/UserProfileSettings";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Deck {
   id: string;
@@ -149,16 +147,6 @@ const DeckList: React.FC = () => {
     loadDecks();
   };
 
-  const startEditing = (deck: Deck) => {
-    setEditingDeckId(deck.id);
-    setEditingName(deck.name);
-  };
-
-  const cancelEditing = () => {
-    setEditingDeckId(null);
-    setEditingName("");
-  };
-
   const saveDeckName = async (deckId: string) => {
     if (!editingName.trim()) {
       toast({
@@ -200,54 +188,21 @@ const DeckList: React.FC = () => {
     ));
   };
 
-  const getInitial = (name: string | null) => {
-    return name ? name.charAt(0).toUpperCase() : '?';
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">
       <div className="max-w-6xl mx-auto space-y-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-semibold text-foreground/80">Dashboard</h1>
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" onClick={() => navigate("/leaderboard")} className="gap-2">
-              <Trophy className="h-4 w-4" />
-              Leaderboard
-            </Button>
-            <Button variant="outline" onClick={() => navigate("/history")} className="gap-2">
-              <History className="h-4 w-4" />
-              History
-            </Button>
-            <Button variant="outline" onClick={() => navigate("/analytics")} className="gap-2">
-              <ChartBar className="h-4 w-4" />
-              Analytics
-            </Button>
-            <Button variant="outline" onClick={() => setIsCreating(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              New Deck
-            </Button>
-            <Button variant="ghost" onClick={() => setShowProfileSettings(true)} className="p-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={profilePicture || undefined} />
-                <AvatarFallback>{getInitial(displayName)}</AvatarFallback>
-              </Avatar>
-            </Button>
-            <Button variant="outline" onClick={handleLogout} className="gap-2">
-              <LogOut className="h-4 w-4" />
-              Logout
-            </Button>
-          </div>
-        </div>
+        <DeckListHeader
+          onNewDeck={() => setIsCreating(true)}
+          onShowSettings={() => setShowProfileSettings(true)}
+          onLogout={handleLogout}
+          profilePicture={profilePicture}
+          displayName={displayName}
+        />
 
-        <div className="relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search decks..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 w-full max-w-sm"
-          />
-        </div>
+        <DeckSearch
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
 
         {isCreating ? (
           <div className="mt-8">
@@ -286,78 +241,24 @@ const DeckList: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
             {filteredDecks.map((deck) => (
-              <Card
+              <DeckCard
                 key={deck.id}
-                className="p-4 hover:bg-accent transition-colors cursor-pointer"
-                onClick={() => !editingDeckId && handleDeckSelect(deck)}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  {editingDeckId === deck.id ? (
-                    <div className="flex items-center space-x-2 w-full">
-                      <Input
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => saveDeckName(deck.id)}
-                      >
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={cancelEditing}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <h3 className="font-semibold">{deck.name}</h3>
-                      <div className="flex space-x-2">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeckSelect(deck, true);
-                          }}
-                          className="text-primary hover:text-primary"
-                        >
-                          <Play className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            startEditing(deck);
-                          }}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeletingDeckId(deck.id);
-                          }}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Created: {new Date(deck.created_at).toLocaleDateString()}
-                </p>
-              </Card>
+                deck={deck}
+                isEditing={editingDeckId === deck.id}
+                editingName={editingName}
+                onEdit={() => {
+                  setEditingDeckId(deck.id);
+                  setEditingName(deck.name);
+                }}
+                onDelete={() => setDeletingDeckId(deck.id)}
+                onPlay={() => handleDeckSelect(deck, true)}
+                onSave={() => saveDeckName(deck.id)}
+                onCancel={() => {
+                  setEditingDeckId(null);
+                  setEditingName("");
+                }}
+                onNameChange={setEditingName}
+              />
             ))}
           </div>
         )}

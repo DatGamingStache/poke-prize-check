@@ -40,16 +40,13 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
   const parseDeckList = (decklist: string) => {
     if (!decklist) return [];
     
-    // Split the decklist into lines and remove empty lines
     const lines = decklist.split('\n').filter(line => line.trim());
     
-    // Parse each line into card count and name
     const deck: string[] = [];
     lines.forEach(line => {
       const match = line.trim().match(/^(\d+)\s+(.+)$/);
       if (match) {
         const [, count, cardName] = match;
-        // Add the card to the deck the specified number of times
         for (let i = 0; i < parseInt(count); i++) {
           deck.push(cardName);
         }
@@ -73,19 +70,14 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
       return;
     }
 
-    // Shuffle the deck
     const shuffledDeck = [...deck].sort(() => Math.random() - 0.5);
     
-    // Draw 7 cards for hand
     const initialHand = shuffledDeck.slice(0, 7);
     
-    // Take 6 cards for prizes
     const prizesCards = shuffledDeck.slice(7, 13);
     
-    // Set remaining deck
     const remaining = shuffledDeck.slice(13);
     
-    // Get unique card names for autocomplete
     const unique = Array.from(new Set(deck)).sort();
 
     setHand(initialHand);
@@ -101,6 +93,10 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
     setGuesses(newGuesses);
   };
 
+  const extractCardName = (cardString: string): string => {
+    return cardString.split(/\s+(?:\(|\d)/).shift()?.trim() || cardString;
+  };
+
   const handleSubmitGuesses = () => {
     const filledGuesses = guesses.filter(Boolean);
     if (filledGuesses.length !== 6) {
@@ -112,16 +108,16 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
       return;
     }
 
-    // Create copies of both arrays to track matches
-    const remainingPrizes = [...prizes];
-    const remainingGuesses = [...guesses];
+    const prizeNames = prizes.map(extractCardName);
+    const guessNames = guesses.map(extractCardName);
+
+    const remainingPrizes = [...prizeNames];
+    const remainingGuesses = [...guessNames];
     let correctGuesses = 0;
 
-    // For each prize card, find the first matching unprocessed guess
-    remainingPrizes.forEach(prize => {
-      const guessIndex = remainingGuesses.findIndex(guess => guess === prize);
+    remainingPrizes.forEach((prizeName) => {
+      const guessIndex = remainingGuesses.findIndex(guess => guess === prizeName);
       if (guessIndex !== -1) {
-        // Remove the matched guess so it can't be counted again
         remainingGuesses.splice(guessIndex, 1);
         correctGuesses++;
       }
@@ -175,7 +171,6 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
           </Carousel>
         </div>
 
-        {/* Temporary Prize List for Testing */}
         <div className="mt-6 p-4 bg-muted rounded-lg">
           <h3 className="text-lg font-medium mb-2">Prize Cards (Testing Only)</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">

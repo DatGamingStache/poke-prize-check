@@ -55,17 +55,25 @@ const DeckList: React.FC = () => {
   }, []);
 
   const loadUserProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    const { data } = await supabase
-      .from('user_preferences')
-      .select('profile_picture_url')
-      .eq('user_id', user.id)
-      .single();
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .select('profile_picture_url')
+        .maybeSingle();
 
-    if (data) {
-      setProfilePicture(data.profile_picture_url);
+      if (error) {
+        console.error('Error loading user profile:', error);
+        return;
+      }
+
+      if (data) {
+        setProfilePicture(data.profile_picture_url);
+      }
+    } catch (error) {
+      console.error('Error in loadUserProfile:', error);
     }
   };
 

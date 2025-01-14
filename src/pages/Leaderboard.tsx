@@ -14,6 +14,24 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 
+// Define types for our data structures
+type LeaderboardEntry = {
+  user_id: string;
+  total_games: number;
+  total_correct_guesses: number;
+  average_accuracy: number;
+}
+
+type UserPreference = {
+  user_id: string;
+  display_name: string;
+  profile_picture_url: string | null;
+}
+
+type CombinedLeaderboardEntry = LeaderboardEntry & {
+  user_preferences?: UserPreference | null;
+}
+
 const Leaderboard = () => {
   const navigate = useNavigate();
 
@@ -43,10 +61,10 @@ const Leaderboard = () => {
         return leaderboard.map(entry => ({
           ...entry,
           user_preferences: preferences?.find(p => p.user_id === entry.user_id)
-        }));
+        })) as CombinedLeaderboardEntry[];
       }
 
-      return leaderboard;
+      return leaderboard as CombinedLeaderboardEntry[];
     },
   });
 

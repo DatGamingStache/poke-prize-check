@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import * as React from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, LogOut, Pencil, Check, X, Eye, History, ChartBar, Search, Trash2, Play, Trophy, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ interface Deck {
   created_at: string;
 }
 
-const DeckList = () => {
+const DeckList: React.FC = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [filteredDecks, setFilteredDecks] = useState<Deck[]>([]);
   const [searchQuery, setSearchQuery] = useState("");

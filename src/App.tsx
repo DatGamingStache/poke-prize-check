@@ -1,60 +1,33 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { useAuth } from "@/hooks/useAuth";
+import Index from "@/pages/Index";
 import Login from "@/pages/Login";
 import DeckList from "@/pages/DeckList";
-import DeckBuilder from "@/pages/DeckBuilder";
+import DeckPreview from "@/pages/DeckPreview";
 import Game from "@/pages/Game";
-import PrintDeckList from "@/pages/PrintDeckList";
+import History from "@/pages/History";
+import GameDetails from "@/pages/GameDetails";
+import Analytics from "@/pages/Analytics";
+import Leaderboard from "@/pages/Leaderboard";
 
 function App() {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return null;
-  }
-
   return (
-    <Router>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/decks" replace />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-        <Route
-          path="/login"
-          element={
-            !isAuthenticated ? <Login /> : <Navigate to="/decks" replace />
-          }
-        />
-        <Route
-          path="/decks"
-          element={
-            isAuthenticated ? <DeckList /> : <Navigate to="/login" replace />
-          }
-        />
-        <Route
-          path="/decks/:id"
-          element={
-            isAuthenticated ? <DeckBuilder /> : <Navigate to="/login" replace />
-          }
-        />
-        <Route
-          path="/game/:id"
-          element={
-            isAuthenticated ? <Game /> : <Navigate to="/login" replace />
-          }
-        />
-        <Route path="/decks/:id/print" element={<PrintDeckList />} />
-      </Routes>
+    <>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/decks" element={<DeckList />} />
+          <Route path="/decks/:id" element={<DeckPreview />} />
+          <Route path="/game/:id" element={<Game />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/history/:id" element={<GameDetails />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+        </Routes>
+      </Router>
       <Toaster />
-    </Router>
+    </>
   );
 }
 

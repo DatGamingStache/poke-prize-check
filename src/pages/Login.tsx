@@ -26,8 +26,12 @@ const Login = () => {
         {/* Header Section */}
         <div className="text-center mb-8 space-y-2">
           <div className="flex items-center justify-center gap-2">
-            <img src="/purple-checkmark.svg" alt="PokéCheck Logo" className="w-8 h-8" />
             <h1 className="text-4xl font-bold text-foreground">PokéCheck</h1>
+            <img 
+              src="/lovable-uploads/b410b0a7-6855-417f-b3bc-d57790375de7.png" 
+              alt="PokéCheck Logo" 
+              className="w-8 h-8" 
+            />
           </div>
           <p className="text-lg text-muted-foreground max-w-md">
             A Pokémon prize checking practice and analytics tool, with decklist printing functionality

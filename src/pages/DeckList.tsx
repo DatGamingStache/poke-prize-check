@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, LogOut, Pencil, Check, X, Eye } from "lucide-react";
+import { Plus, LogOut, Pencil, Check, X, Eye, History, ChartBar, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import DeckUploader from "@/components/DeckUploader";
@@ -24,6 +24,8 @@ interface Deck {
 
 const DeckList = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
+  const [filteredDecks, setFilteredDecks] = useState<Deck[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [editingDeckId, setEditingDeckId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -34,6 +36,13 @@ const DeckList = () => {
   useEffect(() => {
     loadDecks();
   }, []);
+
+  useEffect(() => {
+    const filtered = decks.filter(deck => 
+      deck.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredDecks(filtered);
+  }, [searchQuery, decks]);
 
   const loadDecks = async () => {
     const { data, error } = await supabase
@@ -51,6 +60,7 @@ const DeckList = () => {
     }
 
     setDecks(data || []);
+    setFilteredDecks(data || []);
   };
 
   const handleDeckSelect = (deck: Deck) => {
@@ -115,19 +125,37 @@ const DeckList = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
-          <h1 className="text-4xl font-bold">My Decks</h1>
+          <h1 className="text-3xl font-semibold text-foreground/80">Dashboard</h1>
           <div className="space-x-4">
-            <Button variant="outline" onClick={() => setIsCreating(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+            <Button variant="outline" onClick={() => navigate("/history")} className="gap-2">
+              <History className="h-4 w-4" />
+              History
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/analytics")} className="gap-2">
+              <ChartBar className="h-4 w-4" />
+              Analytics
+            </Button>
+            <Button variant="outline" onClick={() => setIsCreating(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
               New Deck
             </Button>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
+            <Button variant="outline" onClick={handleLogout} className="gap-2">
+              <LogOut className="h-4 w-4" />
               Logout
             </Button>
           </div>
+        </div>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search decks..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 w-full max-w-sm"
+          />
         </div>
 
         {isCreating ? (
@@ -165,74 +193,76 @@ const DeckList = () => {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {decks.map((deck) => (
-              <Card
-                key={deck.id}
-                className="p-4 hover:bg-accent transition-colors"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  {editingDeckId === deck.id ? (
-                    <div className="flex items-center space-x-2 w-full">
-                      <Input
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => saveDeckName(deck.id)}
-                      >
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={cancelEditing}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <h3 className="font-semibold">{deck.name}</h3>
-                      <div className="flex space-x-2">
+          <ScrollArea className="w-full whitespace-nowrap rounded-md">
+            <div className="flex space-x-4 p-4">
+              {filteredDecks.map((deck) => (
+                <Card
+                  key={deck.id}
+                  className="p-4 hover:bg-accent transition-colors min-w-[300px]"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    {editingDeckId === deck.id ? (
+                      <div className="flex items-center space-x-2 w-full">
+                        <Input
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          className="flex-1"
+                        />
                         <Button
                           size="icon"
                           variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPreviewDeck(deck);
-                          }}
+                          onClick={() => saveDeckName(deck.id)}
                         >
-                          <Eye className="h-4 w-4" />
+                          <Check className="h-4 w-4" />
                         </Button>
                         <Button
                           size="icon"
                           variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            startEditing(deck);
-                          }}
+                          onClick={cancelEditing}
                         >
-                          <Pencil className="h-4 w-4" />
+                          <X className="h-4 w-4" />
                         </Button>
                       </div>
-                    </>
-                  )}
-                </div>
-                <div
-                  className="cursor-pointer"
-                  onClick={() => !editingDeckId && handleDeckSelect(deck)}
-                >
-                  <p className="text-sm text-muted-foreground">
-                    Created: {new Date(deck.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              </Card>
-            ))}
-          </div>
+                    ) : (
+                      <>
+                        <h3 className="font-semibold">{deck.name}</h3>
+                        <div className="flex space-x-2">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPreviewDeck(deck);
+                            }}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startEditing(deck);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <div
+                    className="cursor-pointer"
+                    onClick={() => !editingDeckId && handleDeckSelect(deck)}
+                  >
+                    <p className="text-sm text-muted-foreground">
+                      Created: {new Date(deck.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </ScrollArea>
         )}
 
         <Dialog open={!!previewDeck} onOpenChange={() => setPreviewDeck(null)}>

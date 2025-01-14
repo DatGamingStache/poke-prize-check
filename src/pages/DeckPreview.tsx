@@ -163,6 +163,7 @@ const DeckPreview = () => {
           </div>
         </div>
 
+        {/* First Row: Decklist and Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <Card className="p-6">
@@ -178,71 +179,8 @@ const DeckPreview = () => {
                 ))}
               </ScrollArea>
             </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Accuracy Over Time</h2>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={deckStats}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis
-                        dataKey="created_at"
-                        tickFormatter={(date) => new Date(date).toLocaleDateString()}
-                        angle={-45}
-                        textAnchor="end"
-                        height={60}
-                      />
-                      <YAxis
-                        domain={[0, 100]}
-                        tickFormatter={(value) => `${value}%`}
-                      />
-                      <Tooltip
-                        formatter={(value: number) => [`${value.toFixed(1)}%`]}
-                        labelFormatter={(label) => new Date(label).toLocaleDateString()}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="accuracy"
-                        stroke="hsl(var(--primary))"
-                        dot
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </Card>
-
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Card Success Rates</h2>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={cardStats?.successRates} layout="vertical" margin={{ left: 100 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis
-                        type="number"
-                        domain={[0, 100]}
-                        tickFormatter={(value) => `${value}%`}
-                      />
-                      <YAxis
-                        type="category"
-                        dataKey="card"
-                        width={90}
-                        tick={{ fontSize: 12 }}
-                      />
-                      <Tooltip formatter={(value: number) => [`${value.toFixed(1)}%`]} />
-                      <Bar
-                        dataKey="successRate"
-                        fill="hsl(var(--primary))"
-                        radius={[0, 4, 4, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </Card>
-            </div>
           </div>
-
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
             <StatsCard
               title="Total Games Played"
               value={totalGames}
@@ -256,6 +194,69 @@ const DeckPreview = () => {
               value={totalCardsGuessed}
             />
           </div>
+        </div>
+
+        {/* Second Row: Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Accuracy Over Time</h2>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={deckStats}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="created_at"
+                    tickFormatter={(date) => new Date(date).toLocaleDateString()}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis
+                    domain={[0, 100]}
+                    tickFormatter={(value) => `${value}%`}
+                  />
+                  <Tooltip
+                    formatter={(value: number) => [`${value.toFixed(1)}%`]}
+                    labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="accuracy"
+                    stroke="hsl(var(--primary))"
+                    dot
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Card Success Rates</h2>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={cardStats?.successRates} layout="vertical" margin={{ left: 100 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    type="number"
+                    domain={[0, 100]}
+                    tickFormatter={(value) => `${value}%`}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="card"
+                    width={90}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip formatter={(value: number) => [`${value.toFixed(1)}%`]} />
+                  <Bar
+                    dataKey="successRate"
+                    fill="hsl(var(--primary))"
+                    radius={[0, 4, 4, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
         </div>
       </div>
     </div>

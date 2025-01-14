@@ -8,6 +8,7 @@ import Game from "@/pages/Game";
 import History from "@/pages/History";
 import GameDetails from "@/pages/GameDetails";
 import Analytics from "@/pages/Analytics";
+import Leaderboard from "@/pages/Leaderboard";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/history" element={<History />} />
           <Route path="/history/:id" element={<GameDetails />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
         </Routes>
       </Router>
       <Toaster />

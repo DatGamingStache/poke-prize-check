@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, LogOut, Pencil, Check, X, Eye, History, ChartBar, Search, Trash2, Play } from "lucide-react";
+import { Plus, LogOut, Pencil, Check, X, Eye, History, ChartBar, Search, Trash2, Play, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -175,6 +175,10 @@ const DeckList = () => {
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-semibold text-foreground/80">Dashboard</h1>
           <div className="space-x-4">
+            <Button variant="outline" onClick={() => navigate("/leaderboard")} className="gap-2">
+              <Trophy className="h-4 w-4" />
+              Leaderboard
+            </Button>
             <Button variant="outline" onClick={() => navigate("/history")} className="gap-2">
               <History className="h-4 w-4" />
               History

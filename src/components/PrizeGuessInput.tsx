@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 
 interface PrizeGuessInputProps {
   index: number;
@@ -27,9 +26,9 @@ const PrizeGuessInput = ({ index, value, uniqueCards, onChange }: PrizeGuessInpu
     setShowSuggestions(false);
   };
 
-  const filteredCards = uniqueCards.filter(card => 
+  const filteredCards = uniqueCards?.filter(card => 
     card.toLowerCase().includes(inputValue.toLowerCase())
-  );
+  ) || [];
 
   return (
     <div className="relative">
@@ -43,20 +42,22 @@ const PrizeGuessInput = ({ index, value, uniqueCards, onChange }: PrizeGuessInpu
       {showSuggestions && inputValue && (
         <div className="absolute z-50 w-full mt-1">
           <Command className="rounded-lg border shadow-md">
-            <CommandInput placeholder="Search cards..." value={inputValue} onValueChange={setInputValue} />
-            <CommandEmpty>No cards found.</CommandEmpty>
-            <CommandGroup className="max-h-48 overflow-auto">
-              {filteredCards.map((card) => (
-                <CommandItem
-                  key={card}
-                  value={card}
-                  onSelect={() => handleSelect(card)}
-                  className="cursor-pointer"
-                >
-                  {card}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+            <CommandList>
+              <CommandInput placeholder="Search cards..." value={inputValue} onValueChange={setInputValue} />
+              <CommandEmpty>No cards found.</CommandEmpty>
+              <CommandGroup className="max-h-48 overflow-auto">
+                {filteredCards.map((card) => (
+                  <CommandItem
+                    key={card}
+                    value={card}
+                    onSelect={() => handleSelect(card)}
+                    className="cursor-pointer"
+                  >
+                    {card}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
           </Command>
         </div>
       )}

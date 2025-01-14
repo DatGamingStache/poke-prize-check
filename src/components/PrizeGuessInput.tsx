@@ -31,11 +31,18 @@ const PrizeGuessInput = ({
     setInputValue(value);
   }, [value]);
 
+  // Reset highlighted index when input becomes active
+  useEffect(() => {
+    if (activeSuggestionIndex === index) {
+      setHighlightedIndex(0);
+    }
+  }, [activeSuggestionIndex, index]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
     setActiveSuggestionIndex(index);
-    setHighlightedIndex(0); // Reset highlighted index when input changes
+    setHighlightedIndex(0);
     onChange(newValue, index);
   };
 
@@ -122,6 +129,10 @@ const PrizeGuessInput = ({
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         onFocus={() => {
+          setActiveSuggestionIndex(index);
+          setHighlightedIndex(0);
+        }}
+        onClick={() => {
           setActiveSuggestionIndex(index);
           setHighlightedIndex(0);
         }}

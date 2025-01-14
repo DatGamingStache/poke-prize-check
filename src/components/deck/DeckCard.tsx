@@ -9,6 +9,7 @@ interface DeckCardProps {
   deck: {
     id: string;
     name: string;
+    cards: string;
     created_at: string;
   };
   isEditing: boolean;
@@ -35,6 +36,16 @@ const DeckCard: React.FC<DeckCardProps> = ({
   onSelect,
 }) => {
   const navigate = useNavigate();
+
+  const handlePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate("/game", {
+      state: {
+        decklist: deck.cards,
+        deckId: deck.id
+      }
+    });
+  };
 
   return (
     <Card
@@ -83,10 +94,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
                 size="icon"
                 variant="ghost"
                 className="text-green-500 hover:text-green-600"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPlay();
-                }}
+                onClick={handlePlay}
               >
                 <Play className="h-4 w-4" />
               </Button>

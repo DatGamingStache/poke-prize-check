@@ -54,7 +54,7 @@ const DeckList = () => {
   };
 
   const handleDeckSelect = (deck: Deck) => {
-    navigate("/", { state: { decklist: deck.cards } });
+    navigate("/game", { state: { decklist: deck.cards } });
   };
 
   const handleLogout = async () => {

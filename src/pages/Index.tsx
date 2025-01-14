@@ -27,6 +27,11 @@ const Index = () => {
     setGameStarted(false);
   };
 
+  const handleRestart = () => {
+    setGameStarted(true);
+    setGameResult(null);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -42,6 +47,7 @@ const Index = () => {
           <GameBoard 
             decklist={decklist}
             onGameComplete={handleGameComplete}
+            onRestart={handleRestart}
           />
         )}
 

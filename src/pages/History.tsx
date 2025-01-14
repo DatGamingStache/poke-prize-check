@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
 import { ArrowLeft } from "lucide-react";
 import {
   Table,
@@ -12,6 +14,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
 
 interface GameSession {
   id: string;
@@ -26,7 +34,12 @@ interface GameSession {
 
 const History = () => {
   const [sessions, setSessions] = useState<GameSession[]>([]);
+  const [filteredSessions, setFilteredSessions] = useState<GameSession[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchDeck, setSearchDeck] = useState("");
+  const [minScore, setMinScore] = useState("");
+  const [maxTime, setMaxTime] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -55,6 +68,7 @@ const History = () => {
         }
 
         setSessions(data || []);
+        setFilteredSessions(data || []);
       } catch (error) {
         console.error("Error fetching sessions:", error);
         toast({
@@ -69,6 +83,47 @@ const History = () => {
 
     fetchSessions();
   }, [navigate, toast]);
+
+  useEffect(() => {
+    let filtered = [...sessions];
+
+    // Filter by deck name
+    if (searchDeck) {
+      filtered = filtered.filter(session => 
+        session.decklist?.name.toLowerCase().includes(searchDeck.toLowerCase())
+      );
+    }
+
+    // Filter by minimum score
+    if (minScore) {
+      const scoreValue = parseInt(minScore);
+      if (!isNaN(scoreValue)) {
+        filtered = filtered.filter(session => 
+          (session.correct_guesses / session.total_prizes) * 100 >= scoreValue
+        );
+      }
+    }
+
+    // Filter by maximum time
+    if (maxTime) {
+      const timeValue = parseInt(maxTime);
+      if (!isNaN(timeValue)) {
+        filtered = filtered.filter(session => 
+          session.time_spent <= timeValue * 1000 * 60
+        );
+      }
+    }
+
+    // Filter by date
+    if (selectedDate) {
+      filtered = filtered.filter(session => {
+        const sessionDate = new Date(session.created_at);
+        return sessionDate.toDateString() === selectedDate.toDateString();
+      });
+    }
+
+    setFilteredSessions(filtered);
+  }, [sessions, searchDeck, minScore, maxTime, selectedDate]);
 
   if (loading) {
     return (
@@ -91,10 +146,67 @@ const History = () => {
         </Button>
         <h1 className="text-2xl font-bold">Game History</h1>
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div>
+          <label className="text-sm font-medium mb-2 block">Deck Name</label>
+          <Input
+            placeholder="Search deck..."
+            value={searchDeck}
+            onChange={(e) => setSearchDeck(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium mb-2 block">Min Score (%)</label>
+          <Input
+            type="number"
+            placeholder="Minimum score..."
+            value={minScore}
+            onChange={(e) => setMinScore(e.target.value)}
+            min="0"
+            max="100"
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium mb-2 block">Max Time (minutes)</label>
+          <Input
+            type="number"
+            placeholder="Maximum time..."
+            value={maxTime}
+            onChange={(e) => setMaxTime(e.target.value)}
+            min="0"
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium mb-2 block">Date</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+              >
+                {selectedDate ? (
+                  format(selectedDate, "PPP")
+                ) : (
+                  <span>Pick a date</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
       
-      {sessions.length === 0 ? (
+      {filteredSessions.length === 0 ? (
         <div className="text-center text-gray-500">
-          No game sessions found. Try playing a game first!
+          No matching game sessions found.
         </div>
       ) : (
         <div className="rounded-md border">
@@ -108,7 +220,7 @@ const History = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sessions.map((session) => (
+              {filteredSessions.map((session) => (
                 <TableRow 
                   key={session.id}
                   className="cursor-pointer hover:bg-gray-50"

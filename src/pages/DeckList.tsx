@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, LogOut, Pencil, Check, X, Eye, History, ChartBar, Search, Trash2, Play, Trophy } from "lucide-react";
+import { Plus, LogOut, Pencil, Check, X, Eye, History, ChartBar, Search, Trash2, Play, Trophy, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +25,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import DeckUploader from "@/components/DeckUploader";
+import UserProfileSettings from "@/components/UserProfileSettings";
 
 interface Deck {
   id: string;
@@ -41,12 +43,30 @@ const DeckList = () => {
   const [editingName, setEditingName] = useState("");
   const [previewDeck, setPreviewDeck] = useState<Deck | null>(null);
   const [deletingDeckId, setDeletingDeckId] = useState<string | null>(null);
+  const [showProfileSettings, setShowProfileSettings] = useState(false);
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     loadDecks();
+    loadUserProfile();
   }, []);
+
+  const loadUserProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data } = await supabase
+      .from('user_preferences')
+      .select('profile_picture_url')
+      .eq('user_id', user.id)
+      .single();
+
+    if (data) {
+      setProfilePicture(data.profile_picture_url);
+    }
+  };
 
   useEffect(() => {
     const filtered = decks.filter(deck => 
@@ -174,7 +194,7 @@ const DeckList = () => {
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-semibold text-foreground/80">Dashboard</h1>
-          <div className="space-x-4">
+          <div className="flex items-center space-x-4">
             <Button variant="outline" onClick={() => navigate("/leaderboard")} className="gap-2">
               <Trophy className="h-4 w-4" />
               Leaderboard
@@ -190,6 +210,12 @@ const DeckList = () => {
             <Button variant="outline" onClick={() => setIsCreating(true)} className="gap-2">
               <Plus className="h-4 w-4" />
               New Deck
+            </Button>
+            <Button variant="ghost" onClick={() => setShowProfileSettings(true)} className="p-2">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={profilePicture || "/placeholder.svg"} />
+                <AvatarFallback>U</AvatarFallback>
+              </Avatar>
             </Button>
             <Button variant="outline" onClick={handleLogout} className="gap-2">
               <LogOut className="h-4 w-4" />
@@ -320,6 +346,15 @@ const DeckList = () => {
             ))}
           </div>
         )}
+
+        <Dialog open={showProfileSettings} onOpenChange={setShowProfileSettings}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Profile Settings</DialogTitle>
+            </DialogHeader>
+            <UserProfileSettings onClose={() => setShowProfileSettings(false)} />
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={!!previewDeck} onOpenChange={() => setPreviewDeck(null)}>
           <DialogContent className="max-w-md">

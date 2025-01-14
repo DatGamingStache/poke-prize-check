@@ -35,6 +35,8 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
   const { toast } = useToast();
 
   const parseDeckList = (decklist: string) => {
+    if (!decklist) return [];
+    
     // Split the decklist into lines and remove empty lines
     const lines = decklist.split('\n').filter(line => line.trim());
     
@@ -55,6 +57,8 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
   };
 
   useEffect(() => {
+    if (!decklist) return;
+
     const deck = parseDeckList(decklist);
     
     if (deck.length !== 60) {
@@ -79,7 +83,7 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
     const remaining = shuffledDeck.slice(13);
     
     // Get unique card names for autocomplete
-    const unique = Array.from(new Set(deck));
+    const unique = Array.from(new Set(deck)).sort();
 
     setHand(initialHand);
     setPrizes(prizesCards);
@@ -119,6 +123,10 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
       timeSpent,
     });
   };
+
+  if (!decklist) {
+    return null;
+  }
 
   return (
     <div className="space-y-8">

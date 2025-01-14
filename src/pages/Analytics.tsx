@@ -15,7 +15,7 @@ import {
   Bar, 
   Tooltip 
 } from "recharts";
-import { Activity, TrendingUp, Database, ArrowLeft, GameController } from "lucide-react";
+import { Activity, TrendingUp, Database, ArrowLeft, Gamepad } from "lucide-react";
 
 const Analytics = () => {
   const navigate = useNavigate();
@@ -152,7 +152,7 @@ const Analytics = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Cards Guessed</CardTitle>
-            <Database className="h-4 w-4 text-muted-foreground" />
+            <Gamepad className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{cardData?.length || 0}</div>

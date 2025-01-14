@@ -75,60 +75,11 @@ export type Database = {
             referencedRelation: "decklists"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "game_sessions_decklist_id_fkey"
-            columns: ["decklist_id"]
-            isOneToOne: false
-            referencedRelation: "game_session_analytics"
-            referencedColumns: ["deck_id"]
-          },
         ]
       }
     }
     Views: {
-      card_guess_analytics: {
-        Row: {
-          actual_card: string | null
-          correct_guess: boolean | null
-          created_at: string | null
-          deck_name: string | null
-          decklist_id: string | null
-          game_date: string | null
-          guessed_card: string | null
-          session_id: string | null
-          user_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "game_sessions_decklist_id_fkey"
-            columns: ["decklist_id"]
-            isOneToOne: false
-            referencedRelation: "decklists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "game_sessions_decklist_id_fkey"
-            columns: ["decklist_id"]
-            isOneToOne: false
-            referencedRelation: "game_session_analytics"
-            referencedColumns: ["deck_id"]
-          },
-        ]
-      }
-      game_session_analytics: {
-        Row: {
-          accuracy: number | null
-          correct_guesses: number | null
-          created_at: string | null
-          deck_id: string | null
-          deck_name: string | null
-          id: string | null
-          time_spent: number | null
-          total_prizes: number | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       [_ in never]: never

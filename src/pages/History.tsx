@@ -277,7 +277,7 @@ const History = () => {
                 <TableRow 
                   key={session.id}
                   className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => navigate(`/history/${session.id}`)}
+                  onClick={() => navigate(`/game-details/${session.id}`)}
                 >
                   <TableCell>
                     {new Date(session.created_at).toLocaleDateString()}

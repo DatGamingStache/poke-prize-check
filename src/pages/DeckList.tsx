@@ -67,7 +67,7 @@ const DeckList = () => {
     navigate("/game", { 
       state: { 
         decklist: deck.cards,
-        deckId: deck.id  // Add the deckId to the state
+        deckId: deck.id
       } 
     });
   };
@@ -199,74 +199,73 @@ const DeckList = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
-              {filteredDecks.map((deck) => (
-                <Card
-                  key={deck.id}
-                  className="p-4 hover:bg-accent transition-colors min-w-[300px]"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    {editingDeckId === deck.id ? (
-                      <div className="flex items-center space-x-2 w-full">
-                        <Input
-                          value={editingName}
-                          onChange={(e) => setEditingName(e.target.value)}
-                          className="flex-1"
-                        />
+            {filteredDecks.map((deck) => (
+              <Card
+                key={deck.id}
+                className="p-4 hover:bg-accent transition-colors min-w-[300px]"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  {editingDeckId === deck.id ? (
+                    <div className="flex items-center space-x-2 w-full">
+                      <Input
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => saveDeckName(deck.id)}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={cancelEditing}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <h3 className="font-semibold">{deck.name}</h3>
+                      <div className="flex space-x-2">
                         <Button
                           size="icon"
                           variant="ghost"
-                          onClick={() => saveDeckName(deck.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewDeck(deck);
+                          }}
                         >
-                          <Check className="h-4 w-4" />
+                          <Eye className="h-4 w-4" />
                         </Button>
                         <Button
                           size="icon"
                           variant="ghost"
-                          onClick={cancelEditing}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startEditing(deck);
+                          }}
                         >
-                          <X className="h-4 w-4" />
+                          <Pencil className="h-4 w-4" />
                         </Button>
                       </div>
-                    ) : (
-                      <>
-                        <h3 className="font-semibold">{deck.name}</h3>
-                        <div className="flex space-x-2">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setPreviewDeck(deck);
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              startEditing(deck);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  <div
-                    className="cursor-pointer"
-                    onClick={() => !editingDeckId && handleDeckSelect(deck)}
-                  >
-                    <p className="text-sm text-muted-foreground">
-                      Created: {new Date(deck.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </ScrollArea>
+                    </>
+                  )}
+                </div>
+                <div
+                  className="cursor-pointer"
+                  onClick={() => !editingDeckId && handleDeckSelect(deck)}
+                >
+                  <p className="text-sm text-muted-foreground">
+                    Created: {new Date(deck.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              </Card>
+            ))}
+          </div>
         )}
 
         <Dialog open={!!previewDeck} onOpenChange={() => setPreviewDeck(null)}>

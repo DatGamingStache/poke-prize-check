@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import PrizeGuessInput from "./PrizeGuessInput";
 
 interface PrizeGuessesProps {
@@ -8,6 +8,8 @@ interface PrizeGuessesProps {
 }
 
 const PrizeGuesses = ({ guesses, uniqueCards, onGuessChange }: PrizeGuessesProps) => {
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState<number | null>(null);
+
   return (
     <div className="mt-8 space-y-6">
       <h3 className="text-lg font-medium">Prize Guesses</h3>
@@ -19,6 +21,8 @@ const PrizeGuesses = ({ guesses, uniqueCards, onGuessChange }: PrizeGuessesProps
             value={guesses[index] || ""}
             uniqueCards={uniqueCards}
             onChange={onGuessChange}
+            activeSuggestionIndex={activeSuggestionIndex}
+            setActiveSuggestionIndex={setActiveSuggestionIndex}
           />
         ))}
       </div>

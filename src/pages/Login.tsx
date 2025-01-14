@@ -25,7 +25,7 @@ const Login = () => {
       <div className="w-full max-w-md flex-1 flex flex-col items-center justify-center">
         {/* Header Section */}
         <div className="text-center mb-8 space-y-2">
-          <h1 className="text-4xl font-bold text-primary">DeckCheck!</h1>
+          <h1 className="text-4xl font-bold text-foreground">DeckCheck!</h1>
           <p className="text-lg text-muted-foreground max-w-md">
             A Pokémon prize checking practice and analytics tool, with decklist printing functionality
           </p>
@@ -60,10 +60,10 @@ const Login = () => {
       {/* Footer */}
       <footer className="w-full text-center py-4 text-sm text-muted-foreground">
         <p>
-          Created by @datstache • Feature requests or issues? Contact{" "}
+          Created by <span className="font-bold text-primary">datstache</span> • Feature requests or issues? Contact{" "}
           <a 
             href="mailto:weasel0398@gmail.com"
-            className="text-primary hover:underline"
+            className="font-bold text-primary hover:underline"
           >
             truresolution
           </a>

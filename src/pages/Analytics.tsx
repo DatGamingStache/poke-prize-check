@@ -1,13 +1,16 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, BarChart, Bar, Tooltip } from "recharts";
-import { Activity, TrendingUp, Database } from "lucide-react";
+import { Activity, TrendingUp, Database, ArrowLeft } from "lucide-react";
 
 const Analytics = () => {
-  // Fetch game session analytics
+  const navigate = useNavigate();
+  
   const { data: sessionData, isLoading: isSessionLoading } = useQuery({
     queryKey: ["gameSessionAnalytics"],
     queryFn: async () => {
@@ -79,13 +82,23 @@ const Analytics = () => {
   }, [cardData]);
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
-        <Activity className="h-8 w-8 text-primary" />
+    <div className="container mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <Button 
+          variant="outline" 
+          className="w-fit"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
+          <Activity className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+        </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Games Played</CardTitle>
@@ -119,38 +132,30 @@ const Analytics = () => {
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+      <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2">
+        <Card className="w-full">
           <CardHeader>
             <CardTitle>Accuracy Over Time</CardTitle>
           </CardHeader>
-          <CardContent className="h-[300px]">
+          <CardContent className="h-[300px] w-full">
             {isSessionLoading ? (
               <div className="flex h-full items-center justify-center">
                 <span className="text-muted-foreground">Loading...</span>
               </div>
             ) : (
-              <ChartContainer
-                className="h-[300px]"
-                config={{
-                  accuracy: {
-                    theme: {
-                      light: "hsl(var(--primary))",
-                      dark: "hsl(var(--primary))",
-                    },
-                  },
-                }}
-              >
-                <LineChart data={accuracyData}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={accuracyData} margin={{ top: 5, right: 20, bottom: 40, left: 0 }}>
                   <XAxis 
                     dataKey="date"
                     angle={-45}
                     textAnchor="end"
                     height={60}
+                    tick={{ fontSize: 12 }}
                   />
                   <YAxis 
                     domain={[0, 100]}
                     tickFormatter={(value) => `${value}%`}
+                    tick={{ fontSize: 12 }}
                   />
                   <ChartTooltip />
                   <Line
@@ -161,42 +166,38 @@ const Analytics = () => {
                     dot={true}
                   />
                 </LineChart>
-              </ChartContainer>
+              </ResponsiveContainer>
             )}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="w-full">
           <CardHeader>
             <CardTitle>Top 10 Card Success Rates</CardTitle>
           </CardHeader>
-          <CardContent className="h-[300px]">
+          <CardContent className="h-[300px] w-full">
             {isCardLoading ? (
               <div className="flex h-full items-center justify-center">
                 <span className="text-muted-foreground">Loading...</span>
               </div>
             ) : (
-              <ChartContainer
-                className="h-[300px]"
-                config={{
-                  successRate: {
-                    theme: {
-                      light: "hsl(var(--primary))",
-                      dark: "hsl(var(--primary))",
-                    },
-                  },
-                }}
-              >
-                <BarChart data={cardSuccessData} layout="vertical">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={cardSuccessData} 
+                  layout="vertical"
+                  margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
+                >
                   <XAxis 
                     type="number"
                     domain={[0, 100]}
                     tickFormatter={(value) => `${value}%`}
+                    tick={{ fontSize: 12 }}
                   />
                   <YAxis 
                     type="category"
                     dataKey="card"
                     width={150}
+                    tick={{ fontSize: 12 }}
                   />
                   <ChartTooltip />
                   <Bar
@@ -205,7 +206,7 @@ const Analytics = () => {
                     radius={[0, 4, 4, 0]}
                   />
                 </BarChart>
-              </ChartContainer>
+              </ResponsiveContainer>
             )}
           </CardContent>
         </Card>

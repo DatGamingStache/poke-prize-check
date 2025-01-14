@@ -1,9 +1,5 @@
 import React, { useState } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -15,18 +11,20 @@ interface PrizeGuessInputProps {
 }
 
 const PrizeGuessInput = ({ index, value, uniqueCards, onChange }: PrizeGuessInputProps) => {
-  const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState(value);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-    onChange(e.target.value, index);
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    setShowSuggestions(true);
+    onChange(newValue, index);
   };
 
   const handleSelect = (selectedValue: string) => {
     setInputValue(selectedValue);
     onChange(selectedValue, index);
-    setOpen(false);
+    setShowSuggestions(false);
   };
 
   const filteredCards = uniqueCards.filter(card => 
@@ -38,49 +36,30 @@ const PrizeGuessInput = ({ index, value, uniqueCards, onChange }: PrizeGuessInpu
       <Input
         value={inputValue}
         onChange={handleInputChange}
-        placeholder="Type or select a card"
+        onFocus={() => setShowSuggestions(true)}
+        placeholder="Type to search cards..."
         className="w-full"
       />
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            className="absolute right-0 top-0 h-full px-2"
-            onClick={(e) => {
-              e.preventDefault();
-              setOpen(!open);
-            }}
-          >
-            <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0">
-          <Command>
-            <CommandInput placeholder="Search cards..." />
+      {showSuggestions && inputValue && (
+        <div className="absolute z-50 w-full mt-1">
+          <Command className="rounded-lg border shadow-md">
+            <CommandInput placeholder="Search cards..." value={inputValue} onValueChange={setInputValue} />
             <CommandEmpty>No cards found.</CommandEmpty>
-            <CommandGroup>
-              <ScrollArea className="h-48">
-                {filteredCards.map((card) => (
-                  <CommandItem
-                    key={card}
-                    value={card}
-                    onSelect={() => handleSelect(card)}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        inputValue === card ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {card}
-                  </CommandItem>
-                ))}
-              </ScrollArea>
+            <CommandGroup className="max-h-48 overflow-auto">
+              {filteredCards.map((card) => (
+                <CommandItem
+                  key={card}
+                  value={card}
+                  onSelect={() => handleSelect(card)}
+                  className="cursor-pointer"
+                >
+                  {card}
+                </CommandItem>
+              ))}
             </CommandGroup>
           </Command>
-        </PopoverContent>
-      </Popover>
+        </div>
+      )}
     </div>
   );
 };

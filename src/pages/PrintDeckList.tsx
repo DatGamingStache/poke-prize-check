@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
@@ -77,6 +77,13 @@ const PrintDeckList = () => {
     });
   };
 
+  // Function to format birthdate without timezone conversion
+  const formatBirthdate = (dateString: string | null) => {
+    if (!dateString) return null;
+    // Parse the date string and format it directly without timezone conversion
+    return format(parseISO(dateString), 'PP');
+  };
+
   return (
     <div className="min-h-screen bg-white p-8">
       <div className="max-w-7xl mx-auto">
@@ -101,7 +108,7 @@ const PrintDeckList = () => {
                 <p><span className="font-semibold">Player ID:</span> {profile.player_id}</p>
               )}
               {profile.birthdate && (
-                <p><span className="font-semibold">Birthdate:</span> {format(new Date(profile.birthdate), 'PP')}</p>
+                <p><span className="font-semibold">Birthdate:</span> {formatBirthdate(profile.birthdate)}</p>
               )}
               {profile.division && (
                 <p><span className="font-semibold">Division:</span> {profile.division}</p>

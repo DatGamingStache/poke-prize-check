@@ -21,35 +21,54 @@ const Login = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted p-6">
-      <Card className="w-full max-w-md p-6 space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Welcome</h1>
-          <p className="text-muted-foreground">Sign in to manage your decks and play</p>
+    <div className="min-h-screen flex flex-col items-center justify-between bg-gradient-to-b from-background to-muted p-6">
+      <div className="w-full max-w-md flex-1 flex flex-col items-center justify-center">
+        {/* Header Section */}
+        <div className="text-center mb-8 space-y-2">
+          <h1 className="text-4xl font-bold text-primary">DeckCheck!</h1>
+          <p className="text-lg text-muted-foreground max-w-md">
+            A Pokémon prize checking practice and analytics tool, with decklist printing functionality
+          </p>
         </div>
-        
-        {errorMessage && (
-          <Alert variant="destructive">
-            <AlertDescription>{errorMessage}</AlertDescription>
-          </Alert>
-        )}
-        
-        <Auth
-          supabaseClient={supabase}
-          appearance={{
-            theme: ThemeSupa,
-            variables: {
-              default: {
-                colors: {
-                  brand: 'rgb(var(--primary))',
-                  brandAccent: 'rgb(var(--primary))',
+
+        {/* Auth Card */}
+        <Card className="w-full p-6 space-y-6">
+          {errorMessage && (
+            <Alert variant="destructive">
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          )}
+          
+          <Auth
+            supabaseClient={supabase}
+            appearance={{
+              theme: ThemeSupa,
+              variables: {
+                default: {
+                  colors: {
+                    brand: 'rgb(var(--primary))',
+                    brandAccent: 'rgb(var(--primary))',
+                  }
                 }
               }
-            }
-          }}
-          providers={[]}
-        />
-      </Card>
+            }}
+            providers={[]}
+          />
+        </Card>
+      </div>
+
+      {/* Footer */}
+      <footer className="w-full text-center py-4 text-sm text-muted-foreground">
+        <p>
+          Created by @datstache • Feature requests or issues? Contact{" "}
+          <a 
+            href="mailto:weasel0398@gmail.com"
+            className="text-primary hover:underline"
+          >
+            truresolution
+          </a>
+        </p>
+      </footer>
     </div>
   );
 };

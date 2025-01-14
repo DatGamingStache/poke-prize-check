@@ -27,7 +27,7 @@ export const searchCard = async (cardName: string): Promise<PokemonCard | null> 
       .eq('card_name', baseName.trim())
       .eq('set_code', setCode || null)
       .eq('card_number', cardNumber || null)
-      .single();
+      .maybeSingle();
 
     if (cachedCard) {
       console.log('Found cached image for:', baseName);

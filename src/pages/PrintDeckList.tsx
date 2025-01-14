@@ -2,7 +2,6 @@ import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
@@ -17,7 +16,7 @@ interface UserProfile {
 const PrintDeckList = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [deck, setDeck] = React.useState<{ name: string; cards: string } | null>(null);
+  const [deck, setDeck] = React.useState<{ cards: string } | null>(null);
   const [profile, setProfile] = React.useState<UserProfile | null>(null);
 
   React.useEffect(() => {
@@ -30,7 +29,7 @@ const PrintDeckList = () => {
       // Fetch deck data
       const { data: deckData, error: deckError } = await supabase
         .from("decklists")
-        .select("name, cards")
+        .select("cards")
         .eq("id", id)
         .single();
 
@@ -58,31 +57,6 @@ const PrintDeckList = () => {
     fetchData();
   }, [id]);
 
-  const formatCards = (cards: string) => {
-    const lines = cards.split('\n');
-    const sections: { [key: string]: string[] } = {
-      'Pokémon': [],
-      'Trainer': [],
-      'Energy': [],
-    };
-    
-    let currentSection = '';
-    
-    lines.forEach(line => {
-      if (line.toLowerCase().includes('pokémon') || line.toLowerCase().includes('pokemon')) {
-        currentSection = 'Pokémon';
-      } else if (line.toLowerCase().includes('trainer')) {
-        currentSection = 'Trainer';
-      } else if (line.toLowerCase().includes('energy')) {
-        currentSection = 'Energy';
-      } else if (line.trim() && currentSection) {
-        sections[currentSection].push(line.trim());
-      }
-    });
-
-    return sections;
-  };
-
   if (!deck || !profile) {
     return (
       <div className="min-h-screen bg-white p-8 flex items-center justify-center">
@@ -90,8 +64,6 @@ const PrintDeckList = () => {
       </div>
     );
   }
-
-  const sections = formatCards(deck.cards);
 
   return (
     <div className="min-h-screen bg-white p-8">
@@ -129,37 +101,7 @@ const PrintDeckList = () => {
 
           {/* Right side - Decklist */}
           <div className="col-span-3">
-            <h1 className="text-3xl font-bold mb-6">{deck.name}</h1>
-            
-            {/* Pokémon Section */}
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-blue-600 mb-2">Pokémon</h2>
-              <div className="pl-4 font-mono">
-                {sections['Pokémon'].map((card, index) => (
-                  <div key={index}>{card}</div>
-                ))}
-              </div>
-            </div>
-
-            {/* Trainer Section */}
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-purple-600 mb-2">Trainer</h2>
-              <div className="pl-4 font-mono">
-                {sections['Trainer'].map((card, index) => (
-                  <div key={index}>{card}</div>
-                ))}
-              </div>
-            </div>
-
-            {/* Energy Section */}
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-green-600 mb-2">Energy</h2>
-              <div className="pl-4 font-mono">
-                {sections['Energy'].map((card, index) => (
-                  <div key={index}>{card}</div>
-                ))}
-              </div>
-            </div>
+            <div className="font-mono whitespace-pre-wrap">{deck.cards}</div>
           </div>
         </div>
       </div>

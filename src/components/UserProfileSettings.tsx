@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -14,7 +14,45 @@ interface UserProfileSettingsProps {
 const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [showOnLeaderboard, setShowOnLeaderboard] = useState(true);
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    loadUserPreferences();
+  }, []);
+
+  const loadUserPreferences = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: preferences, error } = await supabase
+        .from('user_preferences')
+        .select('profile_picture_url, share_game_history')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      // If no preferences exist, create them
+      if (!preferences) {
+        const { error: insertError } = await supabase
+          .from('user_preferences')
+          .insert({ user_id: user.id });
+
+        if (insertError) throw insertError;
+      } else {
+        setShowOnLeaderboard(preferences.share_game_history);
+        setProfilePictureUrl(preferences.profile_picture_url);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load user preferences",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -45,6 +83,7 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
 
       if (updateError) throw updateError;
 
+      setProfilePictureUrl(publicUrl);
       toast({
         title: "Success",
         description: "Profile picture updated successfully",
@@ -90,7 +129,7 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
     <div className="space-y-6">
       <div className="flex flex-col items-center gap-4">
         <Avatar className="h-24 w-24">
-          <AvatarImage src="/placeholder.svg" />
+          <AvatarImage src={profilePictureUrl || "/placeholder.svg"} />
           <AvatarFallback>User</AvatarFallback>
         </Avatar>
         <div className="flex items-center gap-2">

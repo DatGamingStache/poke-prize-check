@@ -17,10 +17,12 @@ interface GameResult {
 
 interface LocationState {
   decklist?: string;
+  deckId?: string;
 }
 
 const Game = () => {
   const [decklist, setDecklist] = useState<string>("");
+  const [deckId, setDeckId] = useState<string>("");
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
   const [gameStarted, setGameStarted] = useState(false);
   const navigate = useNavigate();
@@ -41,8 +43,8 @@ const Game = () => {
   useEffect(() => {
     if (state?.decklist) {
       setDecklist(state.decklist);
+      setDeckId(state.deckId || "");
       setGameStarted(true);
-      // Clear the location state to prevent restarting the game on refresh
       window.history.replaceState({}, document.title);
     }
   }, [state]);
@@ -59,15 +61,16 @@ const Game = () => {
         return;
       }
 
-      const { error } = await supabase.from("decklists").insert({
+      const { data, error } = await supabase.from("decklists").insert({
         user_id: user.id,
         name: name,
         cards: deck,
-      });
+      }).select().single();
 
       if (error) throw error;
 
       setDecklist(deck);
+      setDeckId(data.id);
       setGameStarted(true);
       setGameResult(null);
 
@@ -115,6 +118,7 @@ const Game = () => {
         {gameStarted && (
           <GameBoard 
             decklist={decklist}
+            deckId={deckId}
             onGameComplete={handleGameComplete}
             onRestart={handleRestart}
           />

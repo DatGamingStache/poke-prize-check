@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import Timer from "./Timer";
 import PrizeGuesses from "./PrizeGuesses";
 import HandDisplay from "./game/HandDisplay";
@@ -9,6 +11,7 @@ import GameControls from "./game/GameControls";
 
 interface GameBoardProps {
   decklist: string;
+  deckId?: string;
   onGameComplete: (results: GameResult) => void;
   onRestart: () => void;
 }
@@ -21,7 +24,7 @@ interface GameResult {
   timeSpent: number;
 }
 
-const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
+const GameBoard = ({ decklist, deckId, onGameComplete, onRestart }: GameBoardProps) => {
   const [hand, setHand] = useState<string[]>([]);
   const [prizes, setPrizes] = useState<string[]>([]);
   const [guesses, setGuesses] = useState<string[]>([]);
@@ -31,6 +34,7 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
   const [showRestartDialog, setShowRestartDialog] = useState(false);
   const [resetTimer, setResetTimer] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const parseDeckList = (decklist: string) => {
     if (!decklist) return [];
@@ -95,7 +99,39 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
     return cardString.split(/\s+(?:\(|\d)/).shift()?.trim() || cardString;
   };
 
-  const handleSubmitGuesses = () => {
+  const saveGameSession = async (results: GameResult) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user || !deckId) {
+        console.error("User not authenticated or deck ID not provided");
+        return;
+      }
+
+      const { error } = await supabase.from("game_sessions").insert({
+        user_id: user.id,
+        decklist_id: deckId,
+        correct_guesses: results.correctGuesses,
+        total_prizes: results.totalPrizes,
+        guessed_cards: results.guessedCards,
+        actual_prizes: results.actualPrizes,
+        time_spent: results.timeSpent
+      });
+
+      if (error) {
+        console.error("Error saving game session:", error);
+        toast({
+          title: "Error",
+          description: "Failed to save game session",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error saving game session:", error);
+    }
+  };
+
+  const handleSubmitGuesses = async () => {
     const filledGuesses = guesses.filter(Boolean);
     if (filledGuesses.length !== 6) {
       toast({
@@ -125,13 +161,16 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
       correctGuesses += Math.min(prizeCount, guessCount);
     });
 
-    onGameComplete({
+    const results = {
       correctGuesses,
       totalPrizes: 6,
       guessedCards: guesses,
       actualPrizes: prizes,
       timeSpent,
-    });
+    };
+
+    await saveGameSession(results);
+    onGameComplete(results);
   };
 
   const handleRestartGame = () => {

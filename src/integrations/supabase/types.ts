@@ -33,6 +33,50 @@ export type Database = {
         }
         Relationships: []
       }
+      game_sessions: {
+        Row: {
+          actual_prizes: string[]
+          correct_guesses: number
+          created_at: string
+          decklist_id: string
+          guessed_cards: string[]
+          id: string
+          time_spent: number
+          total_prizes: number
+          user_id: string
+        }
+        Insert: {
+          actual_prizes: string[]
+          correct_guesses: number
+          created_at?: string
+          decklist_id: string
+          guessed_cards: string[]
+          id?: string
+          time_spent: number
+          total_prizes?: number
+          user_id: string
+        }
+        Update: {
+          actual_prizes?: string[]
+          correct_guesses?: number
+          created_at?: string
+          decklist_id?: string
+          guessed_cards?: string[]
+          id?: string
+          time_spent?: number
+          total_prizes?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_sessions_decklist_id_fkey"
+            columns: ["decklist_id"]
+            isOneToOne: false
+            referencedRelation: "decklists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

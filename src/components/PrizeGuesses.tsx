@@ -11,11 +11,14 @@ const PrizeGuesses = ({ guesses, uniqueCards, onGuessChange }: PrizeGuessesProps
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState<number | null>(null);
 
   const handleEnterPress = (currentIndex: number) => {
-    // Move to next input if not the last one
-    if (currentIndex < 5) {
-      const nextInput = document.querySelector(`input[placeholder="Type to search cards..."]:nth-of-type(${currentIndex + 2})`);
-      if (nextInput instanceof HTMLInputElement) {
-        nextInput.focus();
+    // Move to next empty input if available
+    for (let i = currentIndex + 1; i < 6; i++) {
+      if (!guesses[i]) {
+        const nextInput = document.querySelector(`input[data-index="${i}"]`);
+        if (nextInput instanceof HTMLInputElement) {
+          nextInput.focus();
+          break;
+        }
       }
     }
   };
@@ -34,6 +37,7 @@ const PrizeGuesses = ({ guesses, uniqueCards, onGuessChange }: PrizeGuessesProps
             activeSuggestionIndex={activeSuggestionIndex}
             setActiveSuggestionIndex={setActiveSuggestionIndex}
             onEnterPress={() => handleEnterPress(index)}
+            guesses={guesses}
           />
         ))}
       </div>

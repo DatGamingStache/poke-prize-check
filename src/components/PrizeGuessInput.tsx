@@ -10,6 +10,7 @@ interface PrizeGuessInputProps {
   activeSuggestionIndex: number | null;
   setActiveSuggestionIndex: (index: number | null) => void;
   onEnterPress?: () => void;
+  guesses: string[];
 }
 
 const PrizeGuessInput = ({ 
@@ -19,10 +20,15 @@ const PrizeGuessInput = ({
   onChange,
   activeSuggestionIndex,
   setActiveSuggestionIndex,
-  onEnterPress
+  onEnterPress,
+  guesses
 }: PrizeGuessInputProps) => {
   const [inputValue, setInputValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -38,6 +44,15 @@ const PrizeGuessInput = ({
     if (onEnterPress) {
       onEnterPress();
     }
+  };
+
+  const findNextEmptyIndex = () => {
+    for (let i = index + 1; i < 6; i++) {
+      if (!guesses[i]) {
+        return i;
+      }
+    }
+    return -1;
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -69,6 +84,14 @@ const PrizeGuessInput = ({
 
       if (sortedCards.length > 0) {
         handleSelect(sortedCards[0]);
+        // Find and focus the next empty input
+        const nextEmptyIndex = findNextEmptyIndex();
+        if (nextEmptyIndex !== -1) {
+          const nextInput = document.querySelector(`input[data-index="${nextEmptyIndex}"]`);
+          if (nextInput instanceof HTMLInputElement) {
+            nextInput.focus();
+          }
+        }
       }
     }
   };
@@ -106,6 +129,7 @@ const PrizeGuessInput = ({
         onFocus={() => setActiveSuggestionIndex(index)}
         placeholder="Type to search cards..."
         className="w-full"
+        data-index={index}
       />
       {showSuggestions && (
         <div className="absolute w-full mt-1">

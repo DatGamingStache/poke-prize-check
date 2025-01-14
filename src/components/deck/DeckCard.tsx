@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Play, Printer, Pencil, Trash2, Check, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface DeckCardProps {
   deck: {
@@ -33,6 +34,8 @@ const DeckCard: React.FC<DeckCardProps> = ({
   onNameChange,
   onSelect,
 }) => {
+  const navigate = useNavigate();
+
   return (
     <Card
       className="p-4 hover:bg-accent transition-colors cursor-pointer"
@@ -93,7 +96,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
                 className="text-blue-500 hover:text-blue-600"
                 onClick={(e) => {
                   e.stopPropagation();
-                  window.open(`/decks/${deck.id}/print`, '_blank');
+                  navigate(`/decks/${deck.id}/print`);
                 }}
               >
                 <Printer className="h-4 w-4" />

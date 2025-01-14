@@ -104,7 +104,7 @@ const DeckPreview = () => {
   };
 
   const handlePrint = () => {
-    window.open(`/decks/${deck.id}/print`, '_blank');
+    navigate(`/decks/${deck.id}/print`);
   };
 
   return (

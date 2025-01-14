@@ -113,19 +113,20 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
       return;
     }
 
-    // Create a copy of the prizes array to track matches
+    // Create a copy of both arrays to track matches
     const remainingPrizes = [...prizes];
-    const correctGuesses = guesses.reduce((count, guess) => {
-      // Find the index of the first matching prize card that hasn't been matched yet
-      const prizeIndex = remainingPrizes.findIndex(prize => prize === guess);
-      
-      if (prizeIndex !== -1) {
-        // Remove the matched prize so it can't be matched again
-        remainingPrizes.splice(prizeIndex, 1);
-        return count + 1;
+    const remainingGuesses = [...guesses];
+    let correctGuesses = 0;
+
+    // For each prize card, find the first matching unprocessed guess
+    remainingPrizes.forEach(prize => {
+      const guessIndex = remainingGuesses.findIndex(guess => guess === prize);
+      if (guessIndex !== -1) {
+        // Remove the matched guess so it can't be counted again
+        remainingGuesses.splice(guessIndex, 1);
+        correctGuesses++;
       }
-      return count;
-    }, 0);
+    });
 
     onGameComplete({
       correctGuesses,

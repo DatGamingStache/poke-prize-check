@@ -102,8 +102,10 @@ const GameBoard = ({ decklist, deckId, onGameComplete, onRestart }: GameBoardPro
   const saveGameSession = async (results: GameResult) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log("Current user:", user);
       
       if (!user) {
+        console.log("No user found, redirecting to login");
         toast({
           title: "Error",
           description: "You must be logged in to save game results",
@@ -114,6 +116,7 @@ const GameBoard = ({ decklist, deckId, onGameComplete, onRestart }: GameBoardPro
       }
 
       if (!deckId) {
+        console.log("No deck ID provided");
         toast({
           title: "Error",
           description: "No deck ID provided",
@@ -122,7 +125,7 @@ const GameBoard = ({ decklist, deckId, onGameComplete, onRestart }: GameBoardPro
         return;
       }
 
-      const { error } = await supabase.from("game_sessions").insert({
+      console.log("Attempting to save game session with data:", {
         user_id: user.id,
         decklist_id: deckId,
         correct_guesses: results.correctGuesses,
@@ -132,21 +135,32 @@ const GameBoard = ({ decklist, deckId, onGameComplete, onRestart }: GameBoardPro
         time_spent: results.timeSpent
       });
 
+      const { data, error } = await supabase.from("game_sessions").insert({
+        user_id: user.id,
+        decklist_id: deckId,
+        correct_guesses: results.correctGuesses,
+        total_prizes: results.totalPrizes,
+        guessed_cards: results.guessedCards,
+        actual_prizes: results.actualPrizes,
+        time_spent: results.timeSpent
+      }).select();
+
       if (error) {
         console.error("Error saving game session:", error);
         toast({
           title: "Error",
-          description: "Failed to save game session",
+          description: "Failed to save game session: " + error.message,
           variant: "destructive",
         });
       } else {
+        console.log("Game session saved successfully:", data);
         toast({
           title: "Success",
           description: "Game session saved successfully",
         });
       }
     } catch (error) {
-      console.error("Error saving game session:", error);
+      console.error("Error in saveGameSession:", error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",

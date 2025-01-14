@@ -86,24 +86,36 @@ export type Database = {
       }
       user_preferences: {
         Row: {
+          birthdate: string | null
           created_at: string
           display_name: string
+          division: string | null
+          player_id: string | null
+          player_name: string | null
           profile_picture_url: string | null
           share_game_history: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
+          birthdate?: string | null
           created_at?: string
           display_name: string
+          division?: string | null
+          player_id?: string | null
+          player_name?: string | null
           profile_picture_url?: string | null
           share_game_history?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
+          birthdate?: string | null
           created_at?: string
           display_name?: string
+          division?: string | null
+          player_id?: string | null
+          player_name?: string | null
           profile_picture_url?: string | null
           share_game_history?: boolean
           updated_at?: string

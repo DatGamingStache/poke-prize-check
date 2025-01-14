@@ -1,24 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ProfilePictureSection } from "./profile/ProfilePictureSection";
+import { DisplayNameSection } from "./profile/DisplayNameSection";
+import { PlayerInfoSection } from "./profile/PlayerInfoSection";
 
 interface UserProfileSettingsProps {
   onClose: () => void;
 }
 
 const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
-  const [isUploading, setIsUploading] = useState(false);
   const [showOnLeaderboard, setShowOnLeaderboard] = useState(true);
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("");
-  const [isCheckingName, setIsCheckingName] = useState(false);
   const [displayNameError, setDisplayNameError] = useState<string | null>(null);
+  const [playerName, setPlayerName] = useState("");
+  const [playerId, setPlayerId] = useState("");
+  const [birthdate, setBirthdate] = useState("");
+  const [division, setDivision] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -32,7 +34,7 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
 
       const { data, error } = await supabase
         .from('user_preferences')
-        .select('profile_picture_url, share_game_history, display_name')
+        .select('profile_picture_url, share_game_history, display_name, player_name, player_id, birthdate, division')
         .maybeSingle();
 
       if (error) {
@@ -49,6 +51,10 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
         setShowOnLeaderboard(data.share_game_history);
         setProfilePictureUrl(data.profile_picture_url);
         setDisplayName(data.display_name || '');
+        setPlayerName(data.player_name || '');
+        setPlayerId(data.player_id || '');
+        setBirthdate(data.birthdate ? new Date(data.birthdate).toISOString().split('T')[0] : '');
+        setDivision(data.division || '');
       }
     } catch (error) {
       console.error('Error in loadUserPreferences:', error);
@@ -57,97 +63,6 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
         description: "Failed to load user preferences",
         variant: "destructive",
       });
-    }
-  };
-
-  const checkDisplayNameAvailability = async (name: string) => {
-    if (name.length === 0) {
-      setDisplayNameError("Display name is required");
-      return false;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('user_id')
-        .eq('display_name', name)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      // Name is available if no data returned or if it belongs to current user
-      const isAvailable = !data || data.user_id === user.id;
-      if (!isAvailable) {
-        setDisplayNameError("This display name is already taken");
-      } else {
-        setDisplayNameError(null);
-      }
-      return isAvailable;
-    } catch (error) {
-      console.error('Error checking display name:', error);
-      setDisplayNameError("Error checking display name availability");
-      return false;
-    }
-  };
-
-  const handleDisplayNameChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newName = event.target.value;
-    setDisplayName(newName);
-    setIsCheckingName(true);
-    await checkDisplayNameAvailability(newName);
-    setIsCheckingName(false);
-  };
-
-  const getInitial = (name: string) => {
-    return name ? name.charAt(0).toUpperCase() : '?';
-  };
-
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setIsUploading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('profile_pictures')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('profile_pictures')
-        .getPublicUrl(fileName);
-
-      const { error: updateError } = await supabase
-        .from('user_preferences')
-        .update({ profile_picture_url: publicUrl })
-        .eq('user_id', user.id);
-
-      if (updateError) throw updateError;
-
-      setProfilePictureUrl(publicUrl);
-      toast({
-        title: "Success",
-        description: "Profile picture updated successfully",
-      });
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update profile picture",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploading(false);
     }
   };
 
@@ -179,7 +94,7 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
   };
 
   const handleSave = async () => {
-    if (displayNameError || isCheckingName) {
+    if (displayNameError) {
       return;
     }
 
@@ -189,21 +104,27 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
 
       const { error } = await supabase
         .from('user_preferences')
-        .update({ display_name: displayName })
+        .update({
+          display_name: displayName,
+          player_name: playerName,
+          player_id: playerId,
+          birthdate: birthdate || null,
+          division: division,
+        })
         .eq('user_id', user.id);
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Display name updated successfully",
+        description: "Profile updated successfully",
       });
       onClose();
     } catch (error) {
-      console.error('Error updating display name:', error);
+      console.error('Error updating profile:', error);
       toast({
         title: "Error",
-        description: "Failed to update display name",
+        description: "Failed to update profile",
         variant: "destructive",
       });
     }
@@ -211,44 +132,29 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col items-center gap-4">
-        <Avatar className="h-24 w-24">
-          <AvatarImage src={profilePictureUrl || undefined} alt={displayName} />
-          <AvatarFallback>{getInitial(displayName)}</AvatarFallback>
-        </Avatar>
-        <div className="flex items-center gap-2">
-          <input
-            type="file"
-            id="profile-picture"
-            className="hidden"
-            accept="image/*"
-            onChange={handleImageUpload}
-            disabled={isUploading}
-          />
-          <Button
-            variant="outline"
-            onClick={() => document.getElementById("profile-picture")?.click()}
-            disabled={isUploading}
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            {isUploading ? "Uploading..." : "Upload Picture"}
-          </Button>
-        </div>
-      </div>
+      <ProfilePictureSection
+        profilePictureUrl={profilePictureUrl}
+        displayName={displayName}
+        onPictureUpdate={setProfilePictureUrl}
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="display-name">Display Name</Label>
-        <Input
-          id="display-name"
-          value={displayName}
-          onChange={handleDisplayNameChange}
-          className={displayNameError ? "border-red-500" : ""}
-          placeholder="Enter display name"
-        />
-        {displayNameError && (
-          <p className="text-sm text-red-500">{displayNameError}</p>
-        )}
-      </div>
+      <DisplayNameSection
+        displayName={displayName}
+        onDisplayNameChange={setDisplayName}
+        setDisplayNameError={setDisplayNameError}
+        displayNameError={displayNameError}
+      />
+
+      <PlayerInfoSection
+        playerName={playerName}
+        playerId={playerId}
+        birthdate={birthdate}
+        division={division}
+        onPlayerNameChange={setPlayerName}
+        onPlayerIdChange={setPlayerId}
+        onBirthdateChange={setBirthdate}
+        onDivisionChange={setDivision}
+      />
 
       <div className="flex items-center justify-between">
         <Label htmlFor="show-leaderboard" className="text-base">
@@ -264,7 +170,7 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
       <Button 
         className="w-full" 
         onClick={handleSave}
-        disabled={!!displayNameError || isCheckingName}
+        disabled={!!displayNameError}
       >
         Save Changes
       </Button>

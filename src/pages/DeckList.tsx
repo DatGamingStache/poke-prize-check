@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, LogOut, Pencil, Check, X } from "lucide-react";
+import { Plus, LogOut, Pencil, Check, X, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import DeckUploader from "@/components/DeckUploader";
@@ -20,6 +27,7 @@ const DeckList = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [editingDeckId, setEditingDeckId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [previewDeck, setPreviewDeck] = useState<Deck | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -95,6 +103,14 @@ const DeckList = () => {
 
     setEditingDeckId(null);
     loadDecks();
+  };
+
+  const formatDeckList = (cards: string) => {
+    return cards.split('\n').map((line, index) => (
+      <div key={index} className="py-1">
+        {line}
+      </div>
+    ));
   };
 
   return (
@@ -181,16 +197,28 @@ const DeckList = () => {
                   ) : (
                     <>
                       <h3 className="font-semibold">{deck.name}</h3>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          startEditing(deck);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewDeck(deck);
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startEditing(deck);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </>
                   )}
                 </div>
@@ -206,6 +234,17 @@ const DeckList = () => {
             ))}
           </div>
         )}
+
+        <Dialog open={!!previewDeck} onOpenChange={() => setPreviewDeck(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{previewDeck?.name}</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="h-[400px] w-full rounded-md border p-4">
+              {previewDeck && formatDeckList(previewDeck.cards)}
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

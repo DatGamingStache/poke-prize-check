@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Play } from "lucide-react";
+import { ArrowLeft, Play, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -103,6 +103,10 @@ const DeckPreview = () => {
     });
   };
 
+  const handlePrint = () => {
+    window.open(`/decks/${deck.id}/print`, '_blank');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -119,10 +123,16 @@ const DeckPreview = () => {
               {deck.name}
             </h1>
           </div>
-          <Button onClick={handlePlay} className="gap-2">
-            <Play className="h-4 w-4" />
-            Play
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={handlePrint} variant="outline">
+              <Printer className="h-4 w-4 mr-2" />
+              Print
+            </Button>
+            <Button onClick={handlePlay}>
+              <Play className="h-4 w-4 mr-2" />
+              Play
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

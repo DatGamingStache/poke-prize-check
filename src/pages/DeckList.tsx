@@ -76,14 +76,14 @@ const DeckList = () => {
 
   const handleDeckSelect = (deck: Deck, isPlay: boolean = false) => {
     if (isPlay) {
-      navigate("/game", { 
+      navigate(`/game/${deck.id}`, { 
         state: { 
           decklist: deck.cards,
           deckId: deck.id
         } 
       });
     } else {
-      navigate("/deck-preview", {
+      navigate(`/decks/${deck.id}`, {
         state: deck
       });
     }

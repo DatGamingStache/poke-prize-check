@@ -10,6 +10,16 @@ interface PrizeGuessesProps {
 const PrizeGuesses = ({ guesses, uniqueCards, onGuessChange }: PrizeGuessesProps) => {
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState<number | null>(null);
 
+  const handleEnterPress = (currentIndex: number) => {
+    // Move to next input if not the last one
+    if (currentIndex < 5) {
+      const nextInput = document.querySelector(`input[placeholder="Type to search cards..."]:nth-of-type(${currentIndex + 2})`);
+      if (nextInput instanceof HTMLInputElement) {
+        nextInput.focus();
+      }
+    }
+  };
+
   return (
     <div className="mt-8 space-y-6">
       <h3 className="text-lg font-medium">Prize Guesses</h3>
@@ -23,6 +33,7 @@ const PrizeGuesses = ({ guesses, uniqueCards, onGuessChange }: PrizeGuessesProps
             onChange={onGuessChange}
             activeSuggestionIndex={activeSuggestionIndex}
             setActiveSuggestionIndex={setActiveSuggestionIndex}
+            onEnterPress={() => handleEnterPress(index)}
           />
         ))}
       </div>

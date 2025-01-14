@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 
@@ -9,6 +9,7 @@ interface PrizeGuessInputProps {
   onChange: (value: string, index: number) => void;
   activeSuggestionIndex: number | null;
   setActiveSuggestionIndex: (index: number | null) => void;
+  onEnterPress?: () => void;
 }
 
 const PrizeGuessInput = ({ 
@@ -17,9 +18,11 @@ const PrizeGuessInput = ({
   uniqueCards, 
   onChange,
   activeSuggestionIndex,
-  setActiveSuggestionIndex
+  setActiveSuggestionIndex,
+  onEnterPress
 }: PrizeGuessInputProps) => {
   const [inputValue, setInputValue] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -32,6 +35,21 @@ const PrizeGuessInput = ({
     setInputValue(selectedValue);
     onChange(selectedValue, index);
     setActiveSuggestionIndex(null);
+    if (onEnterPress) {
+      onEnterPress();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && inputValue) {
+      e.preventDefault();
+      const filteredCards = uniqueCards.filter(card => 
+        card.toLowerCase().includes(inputValue.toLowerCase())
+      );
+      if (filteredCards.length > 0) {
+        handleSelect(filteredCards[0]);
+      }
+    }
   };
 
   const filteredCards = uniqueCards?.filter(card => 
@@ -43,8 +61,10 @@ const PrizeGuessInput = ({
   return (
     <div className="relative" style={{ zIndex: 50 - index }}>
       <Input
+        ref={inputRef}
         value={inputValue}
         onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
         onFocus={() => setActiveSuggestionIndex(index)}
         placeholder="Type to search cards..."
         className="w-full"

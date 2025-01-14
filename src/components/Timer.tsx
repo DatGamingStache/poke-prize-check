@@ -2,10 +2,17 @@ import React, { useState, useEffect } from "react";
 
 interface TimerProps {
   onTimeUpdate: (seconds: number) => void;
+  reset?: boolean;
 }
 
-const Timer = ({ onTimeUpdate }: TimerProps) => {
+const Timer = ({ onTimeUpdate, reset }: TimerProps) => {
   const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => {
+    if (reset) {
+      setSeconds(0);
+    }
+  }, [reset]);
 
   useEffect(() => {
     const interval = setInterval(() => {

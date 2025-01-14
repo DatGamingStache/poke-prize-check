@@ -46,6 +46,7 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
   const [remainingDeck, setRemainingDeck] = useState<string[]>([]);
   const [uniqueCards, setUniqueCards] = useState<string[]>([]);
   const [showRestartDialog, setShowRestartDialog] = useState(false);
+  const [resetTimer, setResetTimer] = useState(false);
   const { toast } = useToast();
 
   const parseDeckList = (decklist: string) => {
@@ -94,6 +95,7 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
     setUniqueCards(unique);
     setGuesses([]);
     setTimeSpent(0);
+    setResetTimer(prev => !prev); // Toggle reset to trigger timer reset
   };
 
   useEffect(() => {
@@ -171,7 +173,7 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-medium">Your Hand ({hand.length} cards)</h3>
-            <Timer onTimeUpdate={setTimeSpent} />
+            <Timer onTimeUpdate={setTimeSpent} reset={resetTimer} />
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

@@ -131,7 +131,7 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-h-[calc(100vh-8rem)] overflow-y-auto px-1">
       <ProfilePictureSection
         profilePictureUrl={profilePictureUrl}
         displayName={displayName}
@@ -168,7 +168,7 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
       </div>
 
       <Button 
-        className="w-full" 
+        className="w-full mb-4" 
         onClick={handleSave}
         disabled={!!displayNameError}
       >

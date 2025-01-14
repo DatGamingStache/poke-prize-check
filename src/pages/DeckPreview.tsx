@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Play, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -79,13 +79,24 @@ const DeckPreview = () => {
         return acc;
       }, {});
 
-      return Object.entries(cardSuccessRates)
+      // Calculate total cards guessed before transforming the data
+      const totalCardsGuessed = Object.values(cardSuccessRates).reduce(
+        (sum: number, stats: any) => sum + stats.total,
+        0
+      );
+
+      const successRates = Object.entries(cardSuccessRates)
         .map(([card, stats]: [string, any]) => ({
           card,
           successRate: (stats.correct / stats.total) * 100,
         }))
         .sort((a, b) => b.successRate - a.successRate)
         .slice(0, 10);
+
+      return {
+        successRates,
+        totalCardsGuessed,
+      };
     },
     enabled: !!deck?.id,
   });
@@ -94,7 +105,7 @@ const DeckPreview = () => {
 
   const totalGames = deckStats?.length || 0;
   const averageAccuracy = deckStats?.reduce((acc, curr) => acc + (curr.accuracy || 0), 0) / totalGames || 0;
-  const totalCardsGuessed = cardStats?.reduce((acc, curr) => acc + curr.total, 0) || 0;
+  const totalCardsGuessed = cardStats?.totalCardsGuessed || 0;
 
   const handlePlay = () => {
     navigate("/game", {
@@ -190,7 +201,7 @@ const DeckPreview = () => {
                 <h2 className="text-xl font-semibold mb-4">Card Success Rates</h2>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={cardStats} layout="vertical" margin={{ left: 100 }}>
+                    <BarChart data={cardStats?.successRates} layout="vertical" margin={{ left: 100 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis
                         type="number"

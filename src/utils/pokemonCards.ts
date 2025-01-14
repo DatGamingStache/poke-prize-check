@@ -13,7 +13,7 @@ export const searchCard = async (cardName: string): Promise<PokemonCard | null> 
       `https://api.pokemontcg.io/v2/cards?q=name:"${encodeURIComponent(cardName)}"&pageSize=1`,
       {
         headers: {
-          'X-Api-Key': process.env.POKEMON_TCG_API_KEY || '',
+          'X-Api-Key': import.meta.env.VITE_POKEMON_TCG_API_KEY || '',
         },
       }
     );

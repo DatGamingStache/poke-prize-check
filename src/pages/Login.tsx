@@ -60,10 +60,10 @@ const Login = () => {
       {/* Footer */}
       <footer className="w-full text-center py-4 text-sm text-muted-foreground">
         <p>
-          Created by <span className="font-bold text-primary">datstache</span> • Feature requests or issues? Contact{" "}
+          Created by <span className="font-bold text-[#8B5CF6]">datstache</span> • Feature requests or issues? Contact{" "}
           <a 
             href="mailto:weasel0398@gmail.com"
-            className="font-bold text-primary hover:underline"
+            className="font-bold text-[#8B5CF6] hover:underline"
           >
             truresolution
           </a>

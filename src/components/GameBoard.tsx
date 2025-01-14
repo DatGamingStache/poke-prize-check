@@ -103,8 +103,22 @@ const GameBoard = ({ decklist, deckId, onGameComplete, onRestart }: GameBoardPro
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user || !deckId) {
-        console.error("User not authenticated or deck ID not provided");
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to save game results",
+          variant: "destructive",
+        });
+        navigate("/login");
+        return;
+      }
+
+      if (!deckId) {
+        toast({
+          title: "Error",
+          description: "No deck ID provided",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -125,9 +139,19 @@ const GameBoard = ({ decklist, deckId, onGameComplete, onRestart }: GameBoardPro
           description: "Failed to save game session",
           variant: "destructive",
         });
+      } else {
+        toast({
+          title: "Success",
+          description: "Game session saved successfully",
+        });
       }
     } catch (error) {
       console.error("Error saving game session:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
     }
   };
 

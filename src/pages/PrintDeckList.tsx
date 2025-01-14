@@ -16,7 +16,7 @@ interface UserProfile {
 const PrintDeckList = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [deck, setDeck] = React.useState<{ cards: string } | null>(null);
+  const [deck, setDeck] = React.useState<{ cards: string, name: string } | null>(null);
   const [profile, setProfile] = React.useState<UserProfile | null>(null);
 
   React.useEffect(() => {
@@ -29,7 +29,7 @@ const PrintDeckList = () => {
       // Fetch deck data
       const { data: deckData, error: deckError } = await supabase
         .from("decklists")
-        .select("cards")
+        .select("cards, name")
         .eq("id", id)
         .single();
 
@@ -41,7 +41,7 @@ const PrintDeckList = () => {
       // Fetch user profile data
       const { data: profileData, error: profileError } = await supabase
         .from("user_preferences")
-        .select("display_name, player_name, player_id, birthdate, division")
+        .select("player_name, player_id, birthdate, division")
         .eq("user_id", user.id)
         .single();
 
@@ -84,7 +84,7 @@ const PrintDeckList = () => {
         <Button 
           variant="outline" 
           className="mb-6"
-          onClick={() => navigate(`/decks/${id}`)}
+          onClick={() => navigate(`/decks/${id}`, { state: deck })}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Deck

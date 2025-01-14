@@ -9,6 +9,7 @@ import History from "@/pages/History";
 import GameDetails from "@/pages/GameDetails";
 import Analytics from "@/pages/Analytics";
 import Leaderboard from "@/pages/Leaderboard";
+import PrintDeckList from "@/pages/PrintDeckList";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/decks" element={<DeckList />} />
           <Route path="/decks/:id" element={<DeckPreview />} />
+          <Route path="/decks/:id/print" element={<PrintDeckList />} />
           <Route path="/game/:id" element={<Game />} />
           <Route path="/history" element={<History />} />
           <Route path="/history/:id" element={<GameDetails />} />

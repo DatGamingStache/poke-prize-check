@@ -141,7 +141,7 @@ const PrizeGuessInput = ({
                     key={card}
                     value={card}
                     onSelect={() => handleSelect(card)}
-                    className={`cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                    className={`cursor-pointer ${
                       idx === highlightedIndex ? 'bg-gray-100 dark:bg-gray-700' : ''
                     }`}
                   >

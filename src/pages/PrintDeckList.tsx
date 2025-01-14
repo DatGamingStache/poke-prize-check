@@ -95,7 +95,6 @@ const PrintDeckList = () => {
           <div className="col-span-2 space-y-4">
             <h2 className="text-2xl font-bold">Player Information</h2>
             <div className="space-y-2">
-              <p><span className="font-semibold">Display Name:</span> {profile.display_name}</p>
               {profile.player_name && (
                 <p><span className="font-semibold">Player Name:</span> {profile.player_name}</p>
               )}

@@ -1,28 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Eye } from "lucide-react";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 import Timer from "./Timer";
 import PrizeGuesses from "./PrizeGuesses";
-import { useToast } from "@/hooks/use-toast";
+import HandDisplay from "./game/HandDisplay";
+import RemainingDeck from "./game/RemainingDeck";
+import PrizeDisplay from "./game/PrizeDisplay";
+import GameControls from "./game/GameControls";
 
 interface GameBoardProps {
   decklist: string;
@@ -95,7 +78,7 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
     setUniqueCards(unique);
     setGuesses([]);
     setTimeSpent(0);
-    setResetTimer(prev => !prev); // Toggle reset to trigger timer reset
+    setResetTimer(prev => !prev);
   };
 
   useEffect(() => {
@@ -126,25 +109,19 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
     const prizeNames = prizes.map(extractCardName);
     const guessNames = guesses.map(extractCardName);
 
-    // Create a map to count occurrences of each card in prizes
     const prizeCardCounts = new Map<string, number>();
     prizeNames.forEach(name => {
       prizeCardCounts.set(name, (prizeCardCounts.get(name) || 0) + 1);
     });
 
-    // Create a map to count occurrences of each card in guesses
     const guessCardCounts = new Map<string, number>();
     guessNames.forEach(name => {
       guessCardCounts.set(name, (guessCardCounts.get(name) || 0) + 1);
     });
 
     let correctGuesses = 0;
-    // For each unique prize card
     prizeCardCounts.forEach((prizeCount, prizeName) => {
-      // Get the number of times this card was guessed (0 if not guessed)
       const guessCount = guessCardCounts.get(prizeName) || 0;
-      // Add the minimum of prize count and guess count
-      // This ensures we don't count more matches than actual instances
       correctGuesses += Math.min(prizeCount, guessCount);
     });
 
@@ -176,42 +153,11 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
             <Timer onTimeUpdate={setTimeSpent} reset={resetTimer} />
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {hand.map((card, index) => (
-              <Card key={index} className="p-4 text-center animate-fade-in select-none">
-                {card}
-              </Card>
-            ))}
-          </div>
+          <HandDisplay hand={hand} />
         </div>
 
-        <div className="mt-6">
-          <h3 className="text-lg font-medium mb-4">Remaining Deck ({remainingDeck.length} cards)</h3>
-          <Carousel className="w-full" opts={{ align: "start", dragFree: true }}>
-            <CarouselContent className="-ml-2 md:-ml-4">
-              {remainingDeck.map((card, index) => (
-                <CarouselItem key={index} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/6">
-                  <Card className="p-4 h-32 flex items-center justify-center text-center select-none">
-                    {card}
-                  </Card>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
-          </Carousel>
-        </div>
-
-        <div className="mt-6 p-4 bg-muted rounded-lg">
-          <h3 className="text-lg font-medium mb-2">Prize Cards (Testing Only)</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            {prizes.map((prize, index) => (
-              <div key={index} className="p-2 bg-background rounded text-sm select-none">
-                {prize}
-              </div>
-            ))}
-          </div>
-        </div>
+        <RemainingDeck remainingDeck={remainingDeck} />
+        <PrizeDisplay prizes={prizes} />
 
         <PrizeGuesses
           guesses={guesses}
@@ -219,38 +165,13 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
           onGuessChange={handleCardGuess}
         />
 
-        <div className="mt-8 space-y-4">
-          <Button 
-            onClick={handleSubmitGuesses}
-            className="w-full"
-          >
-            Submit Guesses
-          </Button>
-
-          <Button 
-            onClick={() => setShowRestartDialog(true)}
-            variant="outline"
-            className="w-full"
-          >
-            Start New Game
-          </Button>
-        </div>
+        <GameControls
+          onSubmitGuesses={handleSubmitGuesses}
+          showRestartDialog={showRestartDialog}
+          setShowRestartDialog={setShowRestartDialog}
+          onRestartGame={handleRestartGame}
+        />
       </div>
-
-      <AlertDialog open={showRestartDialog} onOpenChange={setShowRestartDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Start New Game</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to start a new game? This will reshuffle the deck and reset your progress.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>No, keep playing</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRestartGame}>Yes, start new game</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

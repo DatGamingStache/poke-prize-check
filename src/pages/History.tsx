@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -78,7 +80,17 @@ const History = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Game History</h1>
+      <div className="flex items-center gap-4 mb-6">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => navigate("/decks")}
+          className="h-8 w-8"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <h1 className="text-2xl font-bold">Game History</h1>
+      </div>
       
       {sessions.length === 0 ? (
         <div className="text-center text-gray-500">

@@ -47,9 +47,9 @@ const RemainingDeck = ({ remainingDeck }: RemainingDeckProps) => {
           {remainingDeck.map((card, index) => (
             <CarouselItem
               key={index}
-              className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/6"
+              className="pl-2 md:pl-4 basis-auto"
             >
-              <Card className="p-2 h-32 flex items-center justify-center text-center select-none">
+              <Card className="p-2 h-48 w-[180px] flex items-center justify-center text-center select-none">
                 {loading ? (
                   <Skeleton className="w-full h-full" />
                 ) : cardImages[card] ? (

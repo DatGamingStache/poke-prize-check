@@ -33,7 +33,7 @@ const HandDisplay = ({ hand }: HandDisplayProps) => {
   return (
     <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
       {hand.map((card, index) => (
-        <Card key={index} className="p-1 text-center animate-fade-in select-none h-28">
+        <Card key={index} className="p-1 text-center animate-fade-in select-none h-48 w-[180px] mx-auto">
           {loading ? (
             <Skeleton className="w-full h-full" />
           ) : cardImages[card] ? (

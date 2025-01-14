@@ -10,6 +10,16 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import Timer from "./Timer";
 import PrizeGuesses from "./PrizeGuesses";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +45,7 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
   const [timeSpent, setTimeSpent] = useState(0);
   const [remainingDeck, setRemainingDeck] = useState<string[]>([]);
   const [uniqueCards, setUniqueCards] = useState<string[]>([]);
+  const [showRestartDialog, setShowRestartDialog] = useState(false);
   const { toast } = useToast();
 
   const parseDeckList = (decklist: string) => {
@@ -147,6 +158,7 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
   const handleRestartGame = () => {
     initializeGame();
     onRestart();
+    setShowRestartDialog(false);
   };
 
   if (!decklist) {
@@ -214,7 +226,7 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
           </Button>
 
           <Button 
-            onClick={handleRestartGame}
+            onClick={() => setShowRestartDialog(true)}
             variant="outline"
             className="w-full"
           >
@@ -222,6 +234,21 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
           </Button>
         </div>
       </div>
+
+      <AlertDialog open={showRestartDialog} onOpenChange={setShowRestartDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Start New Game</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to start a new game? This will reshuffle the deck and reset your progress.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No, keep playing</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRestartGame}>Yes, start new game</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

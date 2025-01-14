@@ -26,6 +26,16 @@ interface DeckPreviewProps {
   cards: string;
 }
 
+interface CardSuccessRate {
+  card: string;
+  successRate: number;
+}
+
+interface CardStats {
+  successRates: CardSuccessRate[];
+  totalCardsGuessed: number;
+}
+
 const DeckPreview = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -57,16 +67,16 @@ const DeckPreview = () => {
     enabled: !!deck?.id,
   });
 
-  const { data: cardStats } = useQuery({
+  const { data: cardStats } = useQuery<CardStats>({
     queryKey: ["cardStats", deck?.id],
     queryFn: async () => {
-      if (!deck?.id) return [];
+      if (!deck?.id) return { successRates: [], totalCardsGuessed: 0 };
       const { data } = await supabase
         .from("card_guess_analytics")
         .select("*")
         .eq("decklist_id", deck.id);
 
-      if (!data) return [];
+      if (!data) return { successRates: [], totalCardsGuessed: 0 };
 
       const cardSuccessRates = data.reduce((acc: any, curr) => {
         if (!acc[curr.actual_card!]) {
@@ -79,7 +89,6 @@ const DeckPreview = () => {
         return acc;
       }, {});
 
-      // Calculate total cards guessed before transforming the data
       const totalCardsGuessed = Object.values(cardSuccessRates).reduce(
         (sum: number, stats: any) => sum + stats.total,
         0

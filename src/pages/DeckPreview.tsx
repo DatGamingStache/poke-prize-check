@@ -36,6 +36,11 @@ interface CardStats {
   totalCardsGuessed: number;
 }
 
+interface CardSuccessRateStats {
+  correct: number;
+  total: number;
+}
+
 const DeckPreview = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -69,7 +74,7 @@ const DeckPreview = () => {
 
   const { data: cardStats } = useQuery<CardStats>({
     queryKey: ["cardStats", deck?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<CardStats> => {
       if (!deck?.id) return { successRates: [], totalCardsGuessed: 0 };
       const { data } = await supabase
         .from("card_guess_analytics")
@@ -78,24 +83,25 @@ const DeckPreview = () => {
 
       if (!data) return { successRates: [], totalCardsGuessed: 0 };
 
-      const cardSuccessRates = data.reduce((acc: any, curr) => {
-        if (!acc[curr.actual_card!]) {
-          acc[curr.actual_card!] = { correct: 0, total: 0 };
+      const cardSuccessRates = data.reduce<Record<string, CardSuccessRateStats>>((acc, curr) => {
+        if (!curr.actual_card) return acc;
+        if (!acc[curr.actual_card]) {
+          acc[curr.actual_card] = { correct: 0, total: 0 };
         }
-        acc[curr.actual_card!].total++;
+        acc[curr.actual_card].total++;
         if (curr.correct_guess) {
-          acc[curr.actual_card!].correct++;
+          acc[curr.actual_card].correct++;
         }
         return acc;
       }, {});
 
       const totalCardsGuessed = Object.values(cardSuccessRates).reduce(
-        (sum: number, stats: any) => sum + stats.total,
+        (sum, stats) => sum + stats.total,
         0
       );
 
       const successRates = Object.entries(cardSuccessRates)
-        .map(([card, stats]: [string, any]) => ({
+        .map(([card, stats]) => ({
           card,
           successRate: (stats.correct / stats.total) * 100,
         }))

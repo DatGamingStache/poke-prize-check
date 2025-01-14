@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Play, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import StatsCard from "@/components/stats/StatsCard";
 import {
   LineChart,
   Line,
@@ -18,7 +19,6 @@ import {
   Bar,
 } from "recharts";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
 
 interface DeckPreviewProps {
   id: string;
@@ -90,9 +90,11 @@ const DeckPreview = () => {
     enabled: !!deck?.id,
   });
 
-  if (!deck) {
-    return null;
-  }
+  if (!deck) return null;
+
+  const totalGames = deckStats?.length || 0;
+  const averageAccuracy = deckStats?.reduce((acc, curr) => acc + (curr.accuracy || 0), 0) / totalGames || 0;
+  const totalCardsGuessed = cardStats?.reduce((acc, curr) => acc + curr.total, 0) || 0;
 
   const handlePlay = () => {
     navigate("/game", {
@@ -135,91 +137,98 @@ const DeckPreview = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Deck List</h2>
-            <ScrollArea className="h-[400px]">
-              {deck.cards.split("\n").map((card, index) => (
-                <div
-                  key={index}
-                  className="py-2 border-b last:border-b-0 border-border/50"
-                >
-                  {card}
-                </div>
-              ))}
-            </ScrollArea>
-          </Card>
-
-          <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
             <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Accuracy Over Time</h2>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={deckStats}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="created_at"
-                      tickFormatter={(date) =>
-                        new Date(date).toLocaleDateString()
-                      }
-                      angle={-45}
-                      textAnchor="end"
-                      height={60}
-                    />
-                    <YAxis
-                      domain={[0, 100]}
-                      tickFormatter={(value) => `${value}%`}
-                    />
-                    <Tooltip
-                      formatter={(value: number) => [`${value.toFixed(1)}%`]}
-                      labelFormatter={(label) =>
-                        new Date(label).toLocaleDateString()
-                      }
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="accuracy"
-                      stroke="hsl(var(--primary))"
-                      dot
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
-
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Card Success Rates</h2>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={cardStats}
-                    layout="vertical"
-                    margin={{ left: 100 }}
+              <h2 className="text-xl font-semibold mb-4">Deck List</h2>
+              <ScrollArea className="h-[300px]">
+                {deck.cards.split("\n").map((card, index) => (
+                  <div
+                    key={index}
+                    className="py-2 border-b last:border-b-0 border-border/50"
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      type="number"
-                      domain={[0, 100]}
-                      tickFormatter={(value) => `${value}%`}
-                    />
-                    <YAxis
-                      type="category"
-                      dataKey="card"
-                      width={90}
-                      tick={{ fontSize: 12 }}
-                    />
-                    <Tooltip
-                      formatter={(value: number) => [`${value.toFixed(1)}%`]}
-                    />
-                    <Bar
-                      dataKey="successRate"
-                      fill="hsl(var(--primary))"
-                      radius={[0, 4, 4, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+                    {card}
+                  </div>
+                ))}
+              </ScrollArea>
             </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <Card className="p-6">
+                <h2 className="text-xl font-semibold mb-4">Accuracy Over Time</h2>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={deckStats}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="created_at"
+                        tickFormatter={(date) => new Date(date).toLocaleDateString()}
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                      />
+                      <YAxis
+                        domain={[0, 100]}
+                        tickFormatter={(value) => `${value}%`}
+                      />
+                      <Tooltip
+                        formatter={(value: number) => [`${value.toFixed(1)}%`]}
+                        labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="accuracy"
+                        stroke="hsl(var(--primary))"
+                        dot
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <h2 className="text-xl font-semibold mb-4">Card Success Rates</h2>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={cardStats} layout="vertical" margin={{ left: 100 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        type="number"
+                        domain={[0, 100]}
+                        tickFormatter={(value) => `${value}%`}
+                      />
+                      <YAxis
+                        type="category"
+                        dataKey="card"
+                        width={90}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <Tooltip formatter={(value: number) => [`${value.toFixed(1)}%`]} />
+                      <Bar
+                        dataKey="successRate"
+                        fill="hsl(var(--primary))"
+                        radius={[0, 4, 4, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <StatsCard
+              title="Total Games Played"
+              value={totalGames}
+            />
+            <StatsCard
+              title="Average Accuracy"
+              value={`${averageAccuracy.toFixed(1)}%`}
+            />
+            <StatsCard
+              title="Total Cards Guessed"
+              value={totalCardsGuessed}
+            />
           </div>
         </div>
       </div>

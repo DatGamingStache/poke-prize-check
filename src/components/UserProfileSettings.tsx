@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,9 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [showOnLeaderboard, setShowOnLeaderboard] = useState(true);
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState("");
+  const [isCheckingName, setIsCheckingName] = useState(false);
+  const [displayNameError, setDisplayNameError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -28,7 +32,7 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
 
       const { data, error } = await supabase
         .from('user_preferences')
-        .select('profile_picture_url, share_game_history')
+        .select('profile_picture_url, share_game_history, display_name')
         .maybeSingle();
 
       if (error) {
@@ -44,6 +48,7 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
       if (data) {
         setShowOnLeaderboard(data.share_game_history);
         setProfilePictureUrl(data.profile_picture_url);
+        setDisplayName(data.display_name || '');
       }
     } catch (error) {
       console.error('Error in loadUserPreferences:', error);
@@ -53,6 +58,47 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
         variant: "destructive",
       });
     }
+  };
+
+  const checkDisplayNameAvailability = async (name: string) => {
+    if (name.length === 0) {
+      setDisplayNameError("Display name is required");
+      return false;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .select('user_id')
+        .eq('display_name', name)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Name is available if no data returned or if it belongs to current user
+      const isAvailable = !data || data.user_id === user.id;
+      if (!isAvailable) {
+        setDisplayNameError("This display name is already taken");
+      } else {
+        setDisplayNameError(null);
+      }
+      return isAvailable;
+    } catch (error) {
+      console.error('Error checking display name:', error);
+      setDisplayNameError("Error checking display name availability");
+      return false;
+    }
+  };
+
+  const handleDisplayNameChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = event.target.value;
+    setDisplayName(newName);
+    setIsCheckingName(true);
+    await checkDisplayNameAvailability(newName);
+    setIsCheckingName(false);
   };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,6 +174,37 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
     }
   };
 
+  const handleSave = async () => {
+    if (displayNameError || isCheckingName) {
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { error } = await supabase
+        .from('user_preferences')
+        .update({ display_name: displayName })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Display name updated successfully",
+      });
+      onClose();
+    } catch (error) {
+      console.error('Error updating display name:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update display name",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col items-center gap-4">
@@ -155,6 +232,20 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
         </div>
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="display-name">Display Name</Label>
+        <Input
+          id="display-name"
+          value={displayName}
+          onChange={handleDisplayNameChange}
+          className={displayNameError ? "border-red-500" : ""}
+          placeholder="Enter display name"
+        />
+        {displayNameError && (
+          <p className="text-sm text-red-500">{displayNameError}</p>
+        )}
+      </div>
+
       <div className="flex items-center justify-between">
         <Label htmlFor="show-leaderboard" className="text-base">
           Show on Leaderboard
@@ -166,8 +257,12 @@ const UserProfileSettings = ({ onClose }: UserProfileSettingsProps) => {
         />
       </div>
 
-      <Button className="w-full" onClick={onClose}>
-        Done
+      <Button 
+        className="w-full" 
+        onClick={handleSave}
+        disabled={!!displayNameError || isCheckingName}
+      >
+        Save Changes
       </Button>
     </div>
   );

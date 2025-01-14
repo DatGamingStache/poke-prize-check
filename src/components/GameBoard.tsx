@@ -2,6 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Eye } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import Timer from "./Timer";
 import PrizeGuesses from "./PrizeGuesses";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +35,7 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
   const [timeSpent, setTimeSpent] = useState(0);
   const [remainingDeck, setRemainingDeck] = useState<string[]>([]);
   const [uniqueCards, setUniqueCards] = useState<string[]>([]);
+  const [showDeck, setShowDeck] = useState(false);
   const { toast } = useToast();
 
   const parseDeckList = (decklist: string) => {
@@ -126,7 +135,18 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
       <div className="glass-card p-6 rounded-lg">
         <div className="space-y-6">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-medium">Your Hand ({hand.length} cards)</h3>
+            <div className="flex items-center gap-4">
+              <h3 className="text-lg font-medium">Your Hand ({hand.length} cards)</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDeck(!showDeck)}
+                className="flex items-center gap-2"
+              >
+                <Eye className="w-4 h-4" />
+                {showDeck ? "Hide Deck" : "Show Deck"}
+              </Button>
+            </div>
             <Timer onTimeUpdate={setTimeSpent} />
           </div>
           
@@ -138,6 +158,25 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
             ))}
           </div>
         </div>
+
+        {showDeck && (
+          <div className="mt-6">
+            <h3 className="text-lg font-medium mb-4">Remaining Deck ({remainingDeck.length} cards)</h3>
+            <Carousel className="w-full">
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {remainingDeck.map((card, index) => (
+                  <CarouselItem key={index} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/6">
+                    <Card className="p-4 h-32 flex items-center justify-center text-center">
+                      {card}
+                    </Card>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+          </div>
+        )}
 
         <PrizeGuesses
           guesses={guesses}
@@ -160,19 +199,6 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
           >
             Start New Game
           </Button>
-        </div>
-
-        <div className="mt-8">
-          <h3 className="text-lg font-medium mb-4">Remaining Deck ({remainingDeck.length} cards)</h3>
-          <ScrollArea className="h-48 w-full rounded-md border">
-            <div className="p-4">
-              {remainingDeck.map((card, index) => (
-                <div key={index} className="py-1">
-                  {card}
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
         </div>
       </div>
     </div>

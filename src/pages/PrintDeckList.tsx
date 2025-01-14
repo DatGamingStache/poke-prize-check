@@ -65,6 +65,19 @@ const PrintDeckList = () => {
     );
   }
 
+  // Function to process the text and make section headers bold
+  const formatDeckList = (text: string) => {
+    return text.split('\n').map((line, index) => {
+      if (line.toLowerCase().includes('pokémon') || 
+          line.toLowerCase().includes('pokemon') ||
+          line.toLowerCase().includes('trainer') ||
+          line.toLowerCase().includes('energy')) {
+        return <div key={index} className="font-bold">{line}</div>;
+      }
+      return <div key={index}>{line}</div>;
+    });
+  };
+
   return (
     <div className="min-h-screen bg-white p-8">
       <div className="max-w-7xl mx-auto">
@@ -101,7 +114,7 @@ const PrintDeckList = () => {
 
           {/* Right side - Decklist */}
           <div className="col-span-3">
-            <div className="font-mono whitespace-pre-wrap">{deck.cards}</div>
+            <div className="font-mono">{formatDeckList(deck.cards)}</div>
           </div>
         </div>
       </div>

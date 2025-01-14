@@ -113,9 +113,19 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
       return;
     }
 
-    const correctGuesses = guesses.filter(guess => 
-      prizes.includes(guess)
-    ).length;
+    // Create a copy of the prizes array to track matches
+    const remainingPrizes = [...prizes];
+    const correctGuesses = guesses.reduce((count, guess) => {
+      // Find the index of the first matching prize card that hasn't been matched yet
+      const prizeIndex = remainingPrizes.findIndex(prize => prize === guess);
+      
+      if (prizeIndex !== -1) {
+        // Remove the matched prize so it can't be matched again
+        remainingPrizes.splice(prizeIndex, 1);
+        return count + 1;
+      }
+      return count;
+    }, 0);
 
     onGameComplete({
       correctGuesses,

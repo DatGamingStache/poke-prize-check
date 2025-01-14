@@ -35,17 +35,30 @@ const Analytics = () => {
     },
   });
 
-  // Process data for accuracy over time chart
-  const accuracyData = sessionData?.map((session) => ({
-    date: new Date(session.created_at).toLocaleDateString(),
-    accuracy: session.accuracy * 100,
-  }));
+  // Calculate average accuracy properly
+  const averageAccuracy = React.useMemo(() => {
+    if (!sessionData?.length) return 0;
+    const totalCorrect = sessionData.reduce((acc, curr) => acc + curr.correct_guesses, 0);
+    const totalPrizes = sessionData.reduce((acc, curr) => acc + curr.total_prizes, 0);
+    return totalPrizes > 0 ? (totalCorrect / totalPrizes) * 100 : 0;
+  }, [sessionData]);
 
-  // Process data for card success rate chart
+  // Process data for accuracy over time chart with proper date formatting
+  const accuracyData = React.useMemo(() => {
+    if (!sessionData) return [];
+    return sessionData.map((session) => ({
+      date: new Date(session.created_at).toLocaleDateString(),
+      accuracy: (session.correct_guesses / session.total_prizes) * 100,
+    }));
+  }, [sessionData]);
+
+  // Process data for card success rate chart with proper calculations
   const cardSuccessData = React.useMemo(() => {
     if (!cardData) return [];
     
-    const cardStats = cardData.reduce((acc: any, curr) => {
+    const cardStats = cardData.reduce((acc: Record<string, { total: number; correct: number }>, curr) => {
+      if (!curr.actual_card) return acc;
+      
       if (!acc[curr.actual_card]) {
         acc[curr.actual_card] = { total: 0, correct: 0 };
       }
@@ -56,10 +69,13 @@ const Analytics = () => {
       return acc;
     }, {});
 
-    return Object.entries(cardStats).map(([card, stats]: [string, any]) => ({
-      card,
-      successRate: (stats.correct / stats.total) * 100,
-    }));
+    return Object.entries(cardStats)
+      .map(([card, stats]) => ({
+        card,
+        successRate: (stats.correct / stats.total) * 100,
+      }))
+      .sort((a, b) => b.successRate - a.successRate) // Sort by success rate descending
+      .slice(0, 10); // Show only top 10 cards
   }, [cardData]);
 
   return (
@@ -87,13 +103,7 @@ const Analytics = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {sessionData
-                ? `${(
-                    sessionData.reduce((acc, curr) => acc + curr.accuracy, 0) /
-                    sessionData.length *
-                    100
-                  ).toFixed(1)}%`
-                : "0%"}
+              {averageAccuracy.toFixed(1)}%
             </div>
           </CardContent>
         </Card>
@@ -132,14 +142,23 @@ const Analytics = () => {
                 }}
               >
                 <LineChart data={accuracyData}>
-                  <XAxis dataKey="date" />
-                  <YAxis />
+                  <XAxis 
+                    dataKey="date"
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis 
+                    domain={[0, 100]}
+                    tickFormatter={(value) => `${value}%`}
+                  />
                   <ChartTooltip />
                   <Line
                     type="monotone"
                     dataKey="accuracy"
                     stroke="hsl(var(--primary))"
                     strokeWidth={2}
+                    dot={true}
                   />
                 </LineChart>
               </ChartContainer>
@@ -149,7 +168,7 @@ const Analytics = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Card Success Rates</CardTitle>
+            <CardTitle>Top 10 Card Success Rates</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px]">
             {isCardLoading ? (
@@ -168,14 +187,22 @@ const Analytics = () => {
                   },
                 }}
               >
-                <BarChart data={cardSuccessData}>
-                  <XAxis dataKey="card" />
-                  <YAxis />
+                <BarChart data={cardSuccessData} layout="vertical">
+                  <XAxis 
+                    type="number"
+                    domain={[0, 100]}
+                    tickFormatter={(value) => `${value}%`}
+                  />
+                  <YAxis 
+                    type="category"
+                    dataKey="card"
+                    width={150}
+                  />
                   <ChartTooltip />
                   <Bar
                     dataKey="successRate"
                     fill="hsl(var(--primary))"
-                    radius={[4, 4, 0, 0]}
+                    radius={[0, 4, 4, 0]}
                   />
                 </BarChart>
               </ChartContainer>

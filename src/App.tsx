@@ -29,6 +29,8 @@ function App() {
           <Route path="/game-details/:id" element={<GameDetails />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/print-decklist/:id" element={<PrintDeckList />} />
+          {/* Add an alias route for the print functionality */}
+          <Route path="/decks/:id/print" element={<PrintDeckList />} />
         </Routes>
       </Router>
       <Toaster />

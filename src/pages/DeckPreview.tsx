@@ -148,17 +148,18 @@ const DeckPreview = () => {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <h1 className="text-3xl font-semibold text-foreground/80">
-              {deck.name}
+              <span className="hidden md:inline">{deck.name}</span>
+              <span className="md:hidden">
+                {deck.name.length > 12 ? `${deck.name.slice(0, 12)}...` : deck.name}
+              </span>
             </h1>
           </div>
           <div className="flex gap-2">
-            <Button onClick={handlePrint} variant="outline">
-              <Printer className="h-4 w-4 mr-2" />
-              Print
+            <Button onClick={handlePrint} variant="outline" size="icon">
+              <Printer className="h-4 w-4" />
             </Button>
-            <Button onClick={handlePlay}>
-              <Play className="h-4 w-4 mr-2" />
-              Play
+            <Button onClick={handlePlay} size="icon">
+              <Play className="h-4 w-4" />
             </Button>
           </div>
         </div>

@@ -18,6 +18,7 @@ interface DeckCardProps {
   onSave: () => void;
   onCancel: () => void;
   onNameChange: (name: string) => void;
+  onSelect: () => void;
 }
 
 const DeckCard: React.FC<DeckCardProps> = ({
@@ -30,6 +31,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
   onSave,
   onCancel,
   onNameChange,
+  onSelect,
 }) => {
   return (
     <Card
@@ -37,7 +39,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
       onClick={(e) => {
         if (!isEditing) {
           e.stopPropagation();
-          onPlay();
+          onSelect();
         }
       }}
     >
@@ -76,12 +78,12 @@ const DeckCard: React.FC<DeckCardProps> = ({
             <div className="flex space-x-2">
               <Button
                 size="icon"
-                variant="ghost"
+                variant="default"
                 onClick={(e) => {
                   e.stopPropagation();
                   onPlay();
                 }}
-                className="text-primary hover:text-primary"
+                className="bg-green-500 hover:bg-green-600"
               >
                 <Play className="h-4 w-4" />
               </Button>

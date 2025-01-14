@@ -252,6 +252,7 @@ const DeckList: React.FC = () => {
                 }}
                 onDelete={() => setDeletingDeckId(deck.id)}
                 onPlay={() => handleDeckSelect(deck, true)}
+                onSelect={() => handleDeckSelect(deck, false)}
                 onSave={() => saveDeckName(deck.id)}
                 onCancel={() => {
                   setEditingDeckId(null);

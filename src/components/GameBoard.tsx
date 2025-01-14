@@ -151,7 +151,7 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {hand.map((card, index) => (
-              <Card key={index} className="p-4 text-center animate-fade-in">
+              <Card key={index} className="p-4 text-center animate-fade-in select-none">
                 {card}
               </Card>
             ))}
@@ -164,7 +164,7 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
             <CarouselContent className="-ml-2 md:-ml-4">
               {remainingDeck.map((card, index) => (
                 <CarouselItem key={index} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/6">
-                  <Card className="p-4 h-32 flex items-center justify-center text-center">
+                  <Card className="p-4 h-32 flex items-center justify-center text-center select-none">
                     {card}
                   </Card>
                 </CarouselItem>
@@ -180,7 +180,7 @@ const GameBoard = ({ decklist, onGameComplete, onRestart }: GameBoardProps) => {
           <h3 className="text-lg font-medium mb-2">Prize Cards (Testing Only)</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {prizes.map((prize, index) => (
-              <div key={index} className="p-2 bg-background rounded text-sm">
+              <div key={index} className="p-2 bg-background rounded text-sm select-none">
                 {prize}
               </div>
             ))}

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
@@ -39,33 +38,27 @@ const RemainingDeck = ({ remainingDeck }: RemainingDeckProps) => {
 
   return (
     <div className="mt-6">
-      <h3 className="text-lg font-medium mb-4">
-        Remaining Deck ({remainingDeck.length} cards)
-      </h3>
       <Carousel className="w-full" opts={{ align: "start", dragFree: true }}>
         <CarouselContent className="-ml-2 md:-ml-4">
           {remainingDeck.map((card, index) => (
             <CarouselItem
               key={index}
-              className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/6"
+              className="pl-2 md:pl-4 basis-auto"
             >
-              <Card className="p-2 h-48 flex items-center justify-center text-center select-none">
-                {loading ? (
-                  <Skeleton className="w-full h-full" />
-                ) : cardImages[card] ? (
-                  <div className="space-y-2">
-                    <img
-                      src={cardImages[card]?.images.small}
-                      alt={card}
-                      className="w-full h-36 object-contain rounded-lg"
-                      loading="lazy"
-                    />
-                    <p className="text-xs font-medium truncate">{card}</p>
-                  </div>
-                ) : (
-                  <p className="text-sm">{card}</p>
-                )}
-              </Card>
+              {loading ? (
+                <Skeleton className="w-32 h-44" />
+              ) : cardImages[card] ? (
+                <img
+                  src={cardImages[card]?.images.small}
+                  alt={card}
+                  className="w-32 h-auto object-contain rounded-sm"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-32 h-44 flex items-center justify-center bg-muted rounded-sm">
+                  <p className="text-xs">{card}</p>
+                </div>
+              )}
             </CarouselItem>
           ))}
         </CarouselContent>

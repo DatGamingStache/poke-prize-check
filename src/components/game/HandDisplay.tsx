@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 import { searchCard, PokemonCard } from "@/utils/pokemonCards";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -33,25 +32,22 @@ const HandDisplay = ({ hand }: HandDisplayProps) => {
   return (
     <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
       {hand.map((card, index) => (
-        <Card key={index} className="p-1 text-center animate-fade-in select-none">
+        <div key={index} className="animate-fade-in">
           {loading ? (
-            <Skeleton className="w-full h-32" />
+            <Skeleton className="w-32 h-44" />
           ) : cardImages[card] ? (
-            <div className="space-y-1">
-              <img
-                src={cardImages[card]?.images.small}
-                alt={card}
-                className="w-full h-auto rounded-sm object-contain"
-                loading="lazy"
-              />
-              <p className="text-xs font-medium truncate px-1">{card}</p>
-            </div>
+            <img
+              src={cardImages[card]?.images.small}
+              alt={card}
+              className="w-32 h-auto rounded-sm object-contain"
+              loading="lazy"
+            />
           ) : (
-            <div className="h-32 flex items-center justify-center">
+            <div className="w-32 h-44 flex items-center justify-center bg-muted rounded-sm">
               <p className="text-xs">{card}</p>
             </div>
           )}
-        </Card>
+        </div>
       ))}
     </div>
   );

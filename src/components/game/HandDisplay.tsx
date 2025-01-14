@@ -32,15 +32,16 @@ const HandDisplay = ({ hand }: HandDisplayProps) => {
   return (
     <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
       {hand.map((card, index) => (
-        <div key={index} className="animate-fade-in">
+        <div key={index} className="animate-fade-in select-none">
           {loading ? (
             <Skeleton className="w-32 h-44" />
           ) : cardImages[card] ? (
             <img
               src={cardImages[card]?.images.small}
               alt={card}
-              className="w-32 h-auto rounded-sm object-contain"
+              className="w-32 h-auto rounded-sm object-contain select-none"
               loading="lazy"
+              draggable="false"
             />
           ) : (
             <div className="w-32 h-44 flex items-center justify-center bg-muted rounded-sm">

@@ -38,12 +38,12 @@ const RemainingDeck = ({ remainingDeck }: RemainingDeckProps) => {
 
   return (
     <div className="mt-6">
-      <Carousel className="w-full" opts={{ align: "start", dragFree: true }}>
+      <Carousel className="w-full select-none" opts={{ align: "start", dragFree: true }}>
         <CarouselContent className="-ml-2 md:-ml-4">
           {remainingDeck.map((card, index) => (
             <CarouselItem
               key={index}
-              className="pl-2 md:pl-4 basis-auto"
+              className="pl-2 md:pl-4 basis-auto select-none"
             >
               {loading ? (
                 <Skeleton className="w-32 h-44" />
@@ -51,8 +51,9 @@ const RemainingDeck = ({ remainingDeck }: RemainingDeckProps) => {
                 <img
                   src={cardImages[card]?.images.small}
                   alt={card}
-                  className="w-32 h-auto object-contain rounded-sm"
+                  className="w-32 h-auto object-contain rounded-sm select-none"
                   loading="lazy"
+                  draggable="false"
                 />
               ) : (
                 <div className="w-32 h-44 flex items-center justify-center bg-muted rounded-sm">

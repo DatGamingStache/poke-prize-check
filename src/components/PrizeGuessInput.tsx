@@ -46,15 +46,53 @@ const PrizeGuessInput = ({
       const filteredCards = uniqueCards.filter(card => 
         card.toLowerCase().includes(inputValue.toLowerCase())
       );
-      if (filteredCards.length > 0) {
-        handleSelect(filteredCards[0]);
+      
+      // Sort the filtered cards to ensure exact matches appear first
+      const sortedCards = [...filteredCards].sort((a, b) => {
+        const aLower = a.toLowerCase();
+        const bLower = b.toLowerCase();
+        const inputLower = inputValue.toLowerCase();
+        
+        // If one is an exact match, it should come first
+        if (aLower === inputLower) return -1;
+        if (bLower === inputLower) return 1;
+        
+        // If one starts with the input, it should come before one that just includes it
+        const aStarts = aLower.startsWith(inputLower);
+        const bStarts = bLower.startsWith(inputLower);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+        
+        // Default to alphabetical order
+        return aLower.localeCompare(bLower);
+      });
+
+      if (sortedCards.length > 0) {
+        handleSelect(sortedCards[0]);
       }
     }
   };
 
   const filteredCards = uniqueCards?.filter(card => 
     card.toLowerCase().includes(inputValue.toLowerCase())
-  ) || [];
+  ).sort((a, b) => {
+    const aLower = a.toLowerCase();
+    const bLower = b.toLowerCase();
+    const inputLower = inputValue.toLowerCase();
+    
+    // If one is an exact match, it should come first
+    if (aLower === inputLower) return -1;
+    if (bLower === inputLower) return 1;
+    
+    // If one starts with the input, it should come before one that just includes it
+    const aStarts = aLower.startsWith(inputLower);
+    const bStarts = bLower.startsWith(inputLower);
+    if (aStarts && !bStarts) return -1;
+    if (!aStarts && bStarts) return 1;
+    
+    // Default to alphabetical order
+    return aLower.localeCompare(bLower);
+  }) || [];
 
   const showSuggestions = activeSuggestionIndex === index && inputValue;
 

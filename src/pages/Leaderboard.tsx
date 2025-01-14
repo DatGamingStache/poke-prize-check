@@ -20,23 +20,33 @@ const Leaderboard = () => {
   const { data: leaderboardData, isLoading } = useQuery({
     queryKey: ["leaderboard"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First, get the leaderboard data
+      const { data: leaderboard, error: leaderboardError } = await supabase
         .from("leaderboard_view")
-        .select(`
-          user_id,
-          total_games,
-          total_correct_guesses,
-          average_accuracy,
-          user_preferences (
-            display_name,
-            profile_picture_url
-          )
-        `)
+        .select("*")
         .order("average_accuracy", { ascending: false })
         .limit(100);
 
-      if (error) throw error;
-      return data;
+      if (leaderboardError) throw leaderboardError;
+
+      // Then, get all user preferences for the users in the leaderboard
+      if (leaderboard && leaderboard.length > 0) {
+        const userIds = leaderboard.map(entry => entry.user_id);
+        const { data: preferences, error: preferencesError } = await supabase
+          .from("user_preferences")
+          .select("*")
+          .in("user_id", userIds);
+
+        if (preferencesError) throw preferencesError;
+
+        // Combine the data
+        return leaderboard.map(entry => ({
+          ...entry,
+          user_preferences: preferences?.find(p => p.user_id === entry.user_id)
+        }));
+      }
+
+      return leaderboard;
     },
   });
 

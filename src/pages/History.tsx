@@ -192,12 +192,13 @@ const History = () => {
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0 bg-white" align="start">
               <Calendar
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
                 initialFocus
+                className="bg-white"
               />
             </PopoverContent>
           </Popover>
@@ -216,6 +217,7 @@ const History = () => {
                 <TableHead>Date</TableHead>
                 <TableHead>Deck</TableHead>
                 <TableHead>Score</TableHead>
+                <TableHead>Accuracy</TableHead>
                 <TableHead>Time</TableHead>
               </TableRow>
             </TableHeader>
@@ -232,6 +234,9 @@ const History = () => {
                   <TableCell>{session.decklist?.name || "Unknown Deck"}</TableCell>
                   <TableCell>
                     {session.correct_guesses} / {session.total_prizes}
+                  </TableCell>
+                  <TableCell>
+                    {((session.correct_guesses / session.total_prizes) * 100).toFixed(1)}%
                   </TableCell>
                   <TableCell>
                     {Math.floor((session.time_spent / 1000) / 60)}:

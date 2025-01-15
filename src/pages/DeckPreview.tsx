@@ -9,6 +9,12 @@ import { supabase } from "@/integrations/supabase/client";
 import StatsCard from "@/components/stats/StatsCard";
 import DeckUploader from "@/components/DeckUploader";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   LineChart,
   Line,
   XAxis,
@@ -122,6 +128,23 @@ const DeckPreview = () => {
       });
     }
   };
+
+  // If we're on the new deck route, show the dialog
+  if (id === "new") {
+    return (
+      <Dialog open={true} onOpenChange={() => navigate("/decks")}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Create New Deck</DialogTitle>
+          </DialogHeader>
+          <DeckUploader 
+            onDeckSubmit={handleDeckSubmit}
+            onCancel={() => navigate("/decks")}
+          />
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   const { data: deckStats } = useQuery({
     queryKey: ["deckStats", deck?.id],

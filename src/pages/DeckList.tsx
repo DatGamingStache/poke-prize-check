@@ -26,32 +26,80 @@ const DeckList = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: preferences } = await supabase
-          .from("user_preferences")
-          .select("profile_picture_url, display_name")
-          .eq("user_id", user.id)
-          .single();
-        
-        if (preferences) {
-          setProfilePicture(preferences.profile_picture_url);
-          setDisplayName(preferences.display_name);
+      try {
+        console.log("Fetching user data...");
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        console.log("Auth response:", { user, error: userError });
+
+        if (userError) {
+          console.error("Auth error:", userError);
+          toast({
+            title: "Authentication Error",
+            description: "Please try logging in again",
+            variant: "destructive",
+          });
+          navigate("/login");
+          return;
         }
+
+        if (user) {
+          console.log("Fetching user preferences...");
+          const { data: preferences, error: prefError } = await supabase
+            .from("user_preferences")
+            .select("profile_picture_url, display_name")
+            .eq("user_id", user.id)
+            .single();
+          
+          console.log("Preferences response:", { preferences, error: prefError });
+
+          if (prefError) {
+            console.error("Preferences error:", prefError);
+            toast({
+              title: "Error",
+              description: "Failed to load user preferences",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          if (preferences) {
+            setProfilePicture(preferences.profile_picture_url);
+            setDisplayName(preferences.display_name);
+          }
+        }
+      } catch (error) {
+        console.error("Unexpected error:", error);
       }
     };
 
     const fetchDecks = async () => {
-      const { data } = await supabase.from("decklists").select("*");
-      if (data) {
-        setDecks(data);
-        setFilteredDecks(data);
+      try {
+        console.log("Fetching decks...");
+        const { data, error } = await supabase.from("decklists").select("*");
+        console.log("Decks response:", { data, error });
+
+        if (error) {
+          console.error("Decks error:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load decks",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (data) {
+          setDecks(data);
+          setFilteredDecks(data);
+        }
+      } catch (error) {
+        console.error("Unexpected error fetching decks:", error);
       }
     };
 
     fetchUserData();
     fetchDecks();
-  }, []);
+  }, [navigate, toast]);
 
   const handleSearch = (value: string) => {
     setSearchQuery(value);
@@ -62,12 +110,25 @@ const DeckList = () => {
   };
 
   const handleDeleteDeck = async (id: string) => {
-    await supabase.from("decklists").delete().match({ id });
-    setFilteredDecks(filteredDecks.filter(deck => deck.id !== id));
-    toast({
-      title: "Deck deleted",
-      description: "The deck has been successfully deleted.",
-    });
+    try {
+      const { error } = await supabase.from("decklists").delete().match({ id });
+      if (error) {
+        console.error("Delete error:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete deck",
+          variant: "destructive",
+        });
+        return;
+      }
+      setFilteredDecks(filteredDecks.filter(deck => deck.id !== id));
+      toast({
+        title: "Deck deleted",
+        description: "The deck has been successfully deleted.",
+      });
+    } catch (error) {
+      console.error("Unexpected error deleting deck:", error);
+    }
   };
 
   const handleEditDeck = (id: string) => {
@@ -83,8 +144,21 @@ const DeckList = () => {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/login");
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Logout error:", error);
+        toast({
+          title: "Error",
+          description: "Failed to log out",
+          variant: "destructive",
+        });
+        return;
+      }
+      navigate("/login");
+    } catch (error) {
+      console.error("Unexpected error during logout:", error);
+    }
   };
 
   return (

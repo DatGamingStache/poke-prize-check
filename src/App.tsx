@@ -11,6 +11,7 @@ import History from "@/pages/History";
 import GameDetails from "@/pages/GameDetails";
 import Leaderboard from "@/pages/Leaderboard";
 import PrintDeckList from "@/pages/PrintDeckList";
+import UserProfileSettings from "@/components/UserProfileSettings";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ function App() {
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/decks" element={<DeckList />} />
+          <Route path="/decks/new" element={<DeckPreview />} />
           <Route path="/decks/:id" element={<DeckPreview />} />
           <Route path="/game" element={<Game />} />
           <Route path="/analytics" element={<Analytics />} />
@@ -29,6 +31,7 @@ function App() {
           <Route path="/game-details/:id" element={<GameDetails />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/print-decklist/:id" element={<PrintDeckList />} />
+          <Route path="/settings" element={<UserProfileSettings onClose={() => window.history.back()} />} />
           {/* Add an alias route for the print functionality */}
           <Route path="/decks/:id/print" element={<PrintDeckList />} />
         </Routes>

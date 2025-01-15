@@ -35,6 +35,10 @@ const DeckListHeader: React.FC<DeckListHeaderProps> = ({
     return name ? name.charAt(0).toUpperCase() : '?';
   };
 
+  const handleNewDeck = () => {
+    navigate('/decks/new');
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -42,12 +46,12 @@ const DeckListHeader: React.FC<DeckListHeaderProps> = ({
         <div className="flex items-center space-x-4">
           {!isMobile && (
             <>
-              <Button variant="outline" onClick={onNewDeck} className="gap-2">
+              <Button variant="outline" onClick={handleNewDeck} className="gap-2">
                 <Plus className="h-4 w-4" />
                 New Deck
               </Button>
               
-              <Button variant="ghost" onClick={onShowSettings} className="p-2">
+              <Button variant="ghost" onClick={() => navigate('/settings')} className="p-2">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={profilePicture || undefined} />
                   <AvatarFallback>{getInitial(displayName)}</AvatarFallback>
@@ -73,7 +77,7 @@ const DeckListHeader: React.FC<DeckListHeaderProps> = ({
             <DropdownMenuContent align="end" className="w-48 bg-background border-border">
               {isMobile && (
                 <>
-                  <DropdownMenuItem onClick={onNewDeck} className="gap-2">
+                  <DropdownMenuItem onClick={handleNewDeck} className="gap-2">
                     <Plus className="h-4 w-4" />
                     New Deck
                   </DropdownMenuItem>
@@ -95,7 +99,7 @@ const DeckListHeader: React.FC<DeckListHeaderProps> = ({
               {isMobile && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={onShowSettings} className="gap-2">
+                  <DropdownMenuItem onClick={() => navigate('/settings')} className="gap-2">
                     <User className="h-4 w-4" />
                     Profile Settings
                   </DropdownMenuItem>

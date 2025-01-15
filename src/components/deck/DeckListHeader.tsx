@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Menu, Plus, LogOut, History, ChartBar, Trophy, User } from "lucide-react";
+import { Menu, Plus, LogOut, History, ChartBar, Trophy, User, Coffee } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -95,12 +95,24 @@ const DeckListHeader: React.FC<DeckListHeaderProps> = ({
                   <User className="h-4 w-4" />
                   Profile Settings
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onLogout} className="gap-2">
-                  <LogOut className="h-4 w-4" />
-                  Logout
-                </DropdownMenuItem>
               </>
             )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <a 
+                href="https://ko-fi.com/H2H519101Y" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2"
+              >
+                <Coffee className="h-4 w-4" />
+                Support on Ko-fi
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onLogout} className="gap-2 text-destructive">
+              <LogOut className="h-4 w-4" />
+              Logout
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import StatsCard from "@/components/stats/StatsCard";
+import DeckUploader from "@/components/DeckUploader";
 import {
   LineChart,
   Line,
@@ -26,21 +27,6 @@ interface DeckPreviewProps {
   cards: string;
 }
 
-interface CardSuccessRate {
-  card: string;
-  successRate: number;
-}
-
-interface CardStats {
-  successRates: CardSuccessRate[];
-  totalCardsGuessed: number;
-}
-
-interface CardSuccessRateStats {
-  correct: number;
-  total: number;
-}
-
 const DeckPreview = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -48,17 +34,82 @@ const DeckPreview = () => {
   const { toast } = useToast();
   const deck = location.state as DeckPreviewProps | null;
 
-  useEffect(() => {
-    // Only redirect if we're not on the new deck route
-    if (!deck && id !== "new") {
+  const handleDeckSubmit = async (decklist: string, name: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to create a deck",
+          variant: "destructive",
+        });
+        navigate("/login");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("decklists")
+        .insert([
+          {
+            user_id: user.id,
+            name: name,
+            cards: decklist,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error creating deck:", error);
+        toast({
+          title: "Error",
+          description: "Failed to create deck",
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
-        title: "Error",
-        description: "No deck data found. Redirecting to decks page.",
-        variant: "destructive",
+        title: "Success",
+        description: "Deck created successfully",
       });
       navigate("/decks");
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
     }
-  }, [deck, navigate, toast, id]);
+  };
+
+  // If we're on the new deck route, show the deck uploader
+  if (id === "new") {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">
+        <div className="max-w-6xl mx-auto space-y-8">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate("/decks")}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-3xl font-semibold text-foreground/80">
+              Create New Deck
+            </h1>
+          </div>
+          <DeckUploader 
+            onDeckSubmit={handleDeckSubmit}
+            onCancel={() => navigate("/decks")}
+          />
+        </div>
+      </div>
+    );
+  }
 
   const { data: deckStats } = useQuery({
     queryKey: ["deckStats", deck?.id],
@@ -141,33 +192,6 @@ const DeckPreview = () => {
     if (!deck?.id) return;
     navigate(`/decks/${deck.id}/print`);
   };
-
-  // If we're on the new deck route, show a message
-  if (id === "new") {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">
-        <div className="max-w-6xl mx-auto space-y-8">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => navigate("/decks")}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h1 className="text-3xl font-semibold text-foreground/80">
-              Create New Deck
-            </h1>
-          </div>
-          <Card className="p-6">
-            <p className="text-muted-foreground">
-              This feature is coming soon. Please check back later!
-            </p>
-          </Card>
-        </div>
-      </div>
-    );
-  }
 
   if (!deck) return null;
 

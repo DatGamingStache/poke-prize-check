@@ -10,7 +10,7 @@ import { useToast } from "@/components/ui/use-toast";
 interface Deck {
   id: string;
   name: string;
-  cards: string[];
+  cards: string;
   created_at: string;
   user_id: string;
 }
@@ -44,13 +44,8 @@ const DeckList = () => {
     const fetchDecks = async () => {
       const { data } = await supabase.from("decklists").select("*");
       if (data) {
-        // Convert the cards string to array for each deck
-        const parsedDecks = data.map(deck => ({
-          ...deck,
-          cards: JSON.parse(deck.cards)
-        }));
-        setDecks(parsedDecks);
-        setFilteredDecks(parsedDecks);
+        setDecks(data);
+        setFilteredDecks(data);
       }
     };
 
@@ -115,14 +110,16 @@ const DeckList = () => {
               deck={deck}
               onDelete={() => handleDeleteDeck(deck.id)}
               onEdit={() => handleEditDeck(deck.id)}
+              isEditing={false}
+              editingName=""
+              onSave={() => {}}
+              onCancel={() => {}}
+              onNameChange={() => {}}
+              onPlay={() => {}}
+              onSelect={() => {}}
             />
           ))}
         </div>
-
-        {/* Footer with Ko-fi Button */}
-        <footer className="text-center pt-8">
-          <KofiButton />
-        </footer>
       </div>
     </div>
   );

@@ -45,43 +45,32 @@ const DeckList: React.FC = () => {
   const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Check session on mount and redirect if not authenticated
+  // Add session check on mount
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error("Session check error:", error);
-          navigate("/login");
-          return;
-        }
-
-        if (!session) {
-          console.log("No active session found");
-          navigate("/login");
-          return;
-        }
-
-        // Only proceed to load data if we have a valid session
-        await Promise.all([
-          loadDecks(),
-          loadUserProfile()
-        ]);
-      } catch (error) {
-        console.error("Error in session check:", error);
-        navigate("/login");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     checkSession();
-  }, [navigate]);
+  }, []);
+
+  const checkSession = async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      
+      if (!session) {
+        navigate("/login");
+        return;
+      }
+
+      // Only load data if we have a valid session
+      loadDecks();
+      loadUserProfile();
+    } catch (error) {
+      console.error('Session check error:', error);
+      navigate("/login");
+    }
+  };
 
   // Add auth state change listener
   useEffect(() => {
@@ -105,7 +94,6 @@ const DeckList: React.FC = () => {
       const { data, error } = await supabase
         .from('user_preferences')
         .select('profile_picture_url, display_name')
-        .eq('user_id', user.id)
         .maybeSingle();
 
       if (error) {
@@ -126,6 +114,13 @@ const DeckList: React.FC = () => {
       });
     }
   };
+
+  useEffect(() => {
+    const filtered = decks.filter(deck => 
+      deck.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredDecks(filtered);
+  }, [searchQuery, decks]);
 
   const loadDecks = async () => {
     try {
@@ -238,14 +233,6 @@ const DeckList: React.FC = () => {
       </div>
     ));
   };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6 flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">

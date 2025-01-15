@@ -11,25 +11,9 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    // Check if there's an existing session on component mount
-    const checkSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error("Error checking session:", error.message);
-        setErrorMessage(error.message);
-      } else if (session) {
-        navigate("/decks");
-      }
-    };
-
-    checkSession();
-
-    // Subscribe to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
         navigate("/decks");
-      } else if (event === "SIGNED_OUT") {
-        setErrorMessage("");
       }
     });
 

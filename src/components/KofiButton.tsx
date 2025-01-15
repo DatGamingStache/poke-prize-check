@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 declare global {
   interface Window {
@@ -10,9 +10,12 @@ declare global {
 }
 
 const KofiButton = () => {
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
+
   useEffect(() => {
     // Load Ko-fi widget script
     const script = document.createElement('script');
+    scriptRef.current = script;
     script.src = 'https://storage.ko-fi.com/cdn/widget/Widget_2.js';
     script.async = true;
     script.onload = () => {
@@ -26,7 +29,9 @@ const KofiButton = () => {
 
     // Cleanup
     return () => {
-      document.body.removeChild(script);
+      if (scriptRef.current && document.body.contains(scriptRef.current)) {
+        document.body.removeChild(scriptRef.current);
+      }
     };
   }, []);
 

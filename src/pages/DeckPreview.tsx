@@ -27,6 +27,19 @@ interface DeckPreviewProps {
   cards: string;
 }
 
+interface CardSuccessRateStats {
+  correct: number;
+  total: number;
+}
+
+interface CardStats {
+  successRates: Array<{
+    card: string;
+    successRate: number;
+  }>;
+  totalCardsGuessed: number;
+}
+
 const DeckPreview = () => {
   const location = useLocation();
   const navigate = useNavigate();

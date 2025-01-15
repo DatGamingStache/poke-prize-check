@@ -47,11 +47,36 @@ const DeckPreview = () => {
   const { toast } = useToast();
   const deck = location.state as DeckPreviewProps | null;
 
+  // Check authentication status on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log("Auth check:", { session, error });
+        
+        if (error || !session) {
+          console.error("Auth error:", error);
+          toast({
+            title: "Authentication Required",
+            description: "Please log in to access this page",
+            variant: "destructive",
+          });
+          navigate("/login");
+        }
+      } catch (error) {
+        console.error("Unexpected auth error:", error);
+        navigate("/login");
+      }
+    };
+
+    checkAuth();
+  }, [navigate, toast]);
+
   const handleDeckSubmit = async (decklist: string, name: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!user) {
+      if (!session) {
         toast({
           title: "Error",
           description: "You must be logged in to create a deck",
@@ -65,7 +90,7 @@ const DeckPreview = () => {
         .from("decklists")
         .insert([
           {
-            user_id: user.id,
+            user_id: session.user.id,
             name: name,
             cards: decklist,
           },
@@ -97,32 +122,6 @@ const DeckPreview = () => {
       });
     }
   };
-
-  // If we're on the new deck route, show the deck uploader
-  if (id === "new") {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">
-        <div className="max-w-6xl mx-auto space-y-8">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => navigate("/decks")}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h1 className="text-3xl font-semibold text-foreground/80">
-              Create New Deck
-            </h1>
-          </div>
-          <DeckUploader 
-            onDeckSubmit={handleDeckSubmit}
-            onCancel={() => navigate("/decks")}
-          />
-        </div>
-      </div>
-    );
-  }
 
   const { data: deckStats } = useQuery({
     queryKey: ["deckStats", deck?.id],

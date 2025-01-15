@@ -1,10 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Menu, Plus, LogOut, History, ChartBar, Trophy, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import KofiButton from "@/components/KofiButton";
+import UserProfileSettings from "@/components/UserProfileSettings";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,14 +28,13 @@ interface DeckListHeaderProps {
 }
 
 const DeckListHeader: React.FC<DeckListHeaderProps> = ({
-  onNewDeck,
-  onShowSettings,
   onLogout,
   profilePicture,
   displayName,
 }) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   
   const getInitial = (name: string) => {
     return name ? name.charAt(0).toUpperCase() : '?';
@@ -51,12 +56,19 @@ const DeckListHeader: React.FC<DeckListHeaderProps> = ({
                 New Deck
               </Button>
               
-              <Button variant="ghost" onClick={() => navigate('/settings')} className="p-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={profilePicture || undefined} />
-                  <AvatarFallback>{getInitial(displayName)}</AvatarFallback>
-                </Avatar>
-              </Button>
+              <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" className="p-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={profilePicture || undefined} />
+                      <AvatarFallback>{getInitial(displayName)}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <UserProfileSettings onClose={() => setIsProfileOpen(false)} />
+                </DialogContent>
+              </Dialog>
               
               <Button variant="outline" onClick={onLogout} className="gap-2">
                 <LogOut className="h-4 w-4" />
@@ -99,7 +111,7 @@ const DeckListHeader: React.FC<DeckListHeaderProps> = ({
               {isMobile && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/settings')} className="gap-2">
+                  <DropdownMenuItem onClick={() => setIsProfileOpen(true)} className="gap-2">
                     <User className="h-4 w-4" />
                     Profile Settings
                   </DropdownMenuItem>

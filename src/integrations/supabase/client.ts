@@ -17,7 +17,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   },
   global: {
     headers: {
-      'x-my-custom-header': 'pokeprizecheck.com'
+      'x-my-custom-header': window.location.hostname.includes('lovable.app') 
+        ? 'poke-prize-check.lovable.app' 
+        : 'pokeprizecheck.com'
     }
   }
 });

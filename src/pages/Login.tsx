@@ -5,7 +5,6 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import KofiButton from "@/components/KofiButton";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -66,8 +65,8 @@ const Login = () => {
       </div>
 
       {/* Footer */}
-      <footer className="w-full text-center space-y-4 py-4">
-        <p className="text-sm text-muted-foreground">
+      <footer className="w-full text-center py-4 text-sm text-muted-foreground">
+        <p>
           Created by <span className="font-bold text-[#8B5CF6]">Datstache</span> • Feature requests or issues? Contact{" "}
           <a 
             href="mailto:weasel0398@gmail.com"
@@ -76,7 +75,6 @@ const Login = () => {
             TruResolution
           </a>
         </p>
-        <KofiButton />
       </footer>
     </div>
   );

@@ -51,11 +51,6 @@ const DeckListHeader: React.FC<DeckListHeaderProps> = ({
                 <AvatarFallback>{getInitial(displayName)}</AvatarFallback>
               </Avatar>
             </Button>
-            
-            <Button variant="outline" onClick={onLogout} className="gap-2">
-              <LogOut className="h-4 w-4" />
-              Logout
-            </Button>
           </>
         )}
         

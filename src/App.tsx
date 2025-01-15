@@ -22,7 +22,6 @@ function App() {
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/decks" element={<DeckList />} />
-          <Route path="/decks/new" element={<DeckPreview />} />
           <Route path="/decks/:id" element={<DeckPreview />} />
           <Route path="/game" element={<Game />} />
           <Route path="/analytics" element={<Analytics />} />

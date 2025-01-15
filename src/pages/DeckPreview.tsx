@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Play, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -7,13 +7,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import StatsCard from "@/components/stats/StatsCard";
-import DeckUploader from "@/components/DeckUploader";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   LineChart,
   Line,
@@ -33,118 +26,37 @@ interface DeckPreviewProps {
   cards: string;
 }
 
+interface CardSuccessRate {
+  card: string;
+  successRate: number;
+}
+
+interface CardStats {
+  successRates: CardSuccessRate[];
+  totalCardsGuessed: number;
+}
+
 interface CardSuccessRateStats {
   correct: number;
   total: number;
 }
 
-interface CardStats {
-  successRates: Array<{
-    card: string;
-    successRate: number;
-  }>;
-  totalCardsGuessed: number;
-}
-
 const DeckPreview = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { id } = useParams();
   const { toast } = useToast();
   const deck = location.state as DeckPreviewProps | null;
 
-  // Check authentication status on component mount
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        console.log("Auth check:", { session, error });
-        
-        if (error || !session) {
-          console.error("Auth error:", error);
-          toast({
-            title: "Authentication Required",
-            description: "Please log in to access this page",
-            variant: "destructive",
-          });
-          navigate("/login");
-        }
-      } catch (error) {
-        console.error("Unexpected auth error:", error);
-        navigate("/login");
-      }
-    };
-
-    checkAuth();
-  }, [navigate, toast]);
-
-  const handleDeckSubmit = async (decklist: string, name: string) => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast({
-          title: "Error",
-          description: "You must be logged in to create a deck",
-          variant: "destructive",
-        });
-        navigate("/login");
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("decklists")
-        .insert([
-          {
-            user_id: session.user.id,
-            name: name,
-            cards: decklist,
-          },
-        ])
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Error creating deck:", error);
-        toast({
-          title: "Error",
-          description: "Failed to create deck",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: "Success",
-        description: "Deck created successfully",
-      });
-      navigate("/decks");
-    } catch (error) {
-      console.error("Unexpected error:", error);
+    if (!deck) {
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: "No deck data found. Redirecting to decks page.",
         variant: "destructive",
       });
+      navigate("/decks");
     }
-  };
-
-  // If we're on the new deck route, show the dialog
-  if (id === "new") {
-    return (
-      <Dialog open={true} onOpenChange={() => navigate("/decks")}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Create New Deck</DialogTitle>
-          </DialogHeader>
-          <DeckUploader 
-            onDeckSubmit={handleDeckSubmit}
-            onCancel={() => navigate("/decks")}
-          />
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  }, [deck, navigate, toast]);
 
   const { data: deckStats } = useQuery({
     queryKey: ["deckStats", deck?.id],
@@ -160,7 +72,7 @@ const DeckPreview = () => {
     enabled: !!deck?.id,
   });
 
-  const { data: cardStats } = useQuery({
+  const { data: cardStats } = useQuery<CardStats>({
     queryKey: ["cardStats", deck?.id],
     queryFn: async (): Promise<CardStats> => {
       if (!deck?.id) return { successRates: [], totalCardsGuessed: 0 };
@@ -171,20 +83,17 @@ const DeckPreview = () => {
 
       if (!data) return { successRates: [], totalCardsGuessed: 0 };
 
-      const cardSuccessRates = data.reduce<Record<string, CardSuccessRateStats>>(
-        (acc, curr) => {
-          if (!curr.actual_card) return acc;
-          if (!acc[curr.actual_card]) {
-            acc[curr.actual_card] = { correct: 0, total: 0 };
-          }
-          acc[curr.actual_card].total++;
-          if (curr.correct_guess) {
-            acc[curr.actual_card].correct++;
-          }
-          return acc;
-        },
-        {}
-      );
+      const cardSuccessRates = data.reduce<Record<string, CardSuccessRateStats>>((acc, curr) => {
+        if (!curr.actual_card) return acc;
+        if (!acc[curr.actual_card]) {
+          acc[curr.actual_card] = { correct: 0, total: 0 };
+        }
+        acc[curr.actual_card].total++;
+        if (curr.correct_guess) {
+          acc[curr.actual_card].correct++;
+        }
+        return acc;
+      }, {});
 
       const totalCardsGuessed = Object.values(cardSuccessRates).reduce(
         (sum, stats) => sum + stats.total,
@@ -207,14 +116,13 @@ const DeckPreview = () => {
     enabled: !!deck?.id,
   });
 
+  if (!deck) return null;
+
   const totalGames = deckStats?.length || 0;
-  const averageAccuracy =
-    deckStats?.reduce((acc, curr) => acc + (curr.accuracy || 0), 0) /
-      totalGames || 0;
+  const averageAccuracy = deckStats?.reduce((acc, curr) => acc + (curr.accuracy || 0), 0) / totalGames || 0;
   const totalCardsGuessed = cardStats?.totalCardsGuessed || 0;
 
   const handlePlay = () => {
-    if (!deck) return;
     navigate("/game", {
       state: {
         decklist: deck.cards,
@@ -224,11 +132,8 @@ const DeckPreview = () => {
   };
 
   const handlePrint = () => {
-    if (!deck?.id) return;
     navigate(`/decks/${deck.id}/print`);
   };
-
-  if (!deck) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">
@@ -245,9 +150,7 @@ const DeckPreview = () => {
             <h1 className="text-3xl font-semibold text-foreground/80">
               <span className="hidden md:inline">{deck.name}</span>
               <span className="md:hidden">
-                {deck.name.length > 12
-                  ? `${deck.name.slice(0, 12)}...`
-                  : deck.name}
+                {deck.name.length > 12 ? `${deck.name.slice(0, 12)}...` : deck.name}
               </span>
             </h1>
           </div>
@@ -279,12 +182,18 @@ const DeckPreview = () => {
             </Card>
           </div>
           <div className="grid grid-cols-1 gap-4">
-            <StatsCard title="Total Games Played" value={totalGames} />
+            <StatsCard
+              title="Total Games Played"
+              value={totalGames}
+            />
             <StatsCard
               title="Average Accuracy"
               value={`${averageAccuracy.toFixed(1)}%`}
             />
-            <StatsCard title="Total Cards Guessed" value={totalCardsGuessed} />
+            <StatsCard
+              title="Total Cards Guessed"
+              value={totalCardsGuessed}
+            />
           </div>
         </div>
 
@@ -309,9 +218,7 @@ const DeckPreview = () => {
                   />
                   <Tooltip
                     formatter={(value: number) => [`${value.toFixed(1)}%`]}
-                    labelFormatter={(label) =>
-                      new Date(label).toLocaleDateString()
-                    }
+                    labelFormatter={(label) => new Date(label).toLocaleDateString()}
                   />
                   <Line
                     type="monotone"
@@ -328,11 +235,7 @@ const DeckPreview = () => {
             <h2 className="text-xl font-semibold mb-4">Card Success Rates</h2>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={cardStats?.successRates}
-                  layout="vertical"
-                  margin={{ left: 100 }}
-                >
+                <BarChart data={cardStats?.successRates} layout="vertical" margin={{ left: 100 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
                     type="number"
@@ -345,9 +248,7 @@ const DeckPreview = () => {
                     width={90}
                     tick={{ fontSize: 12 }}
                   />
-                  <Tooltip
-                    formatter={(value: number) => [`${value.toFixed(1)}%`]}
-                  />
+                  <Tooltip formatter={(value: number) => [`${value.toFixed(1)}%`]} />
                   <Bar
                     dataKey="successRate"
                     fill="hsl(var(--primary))"

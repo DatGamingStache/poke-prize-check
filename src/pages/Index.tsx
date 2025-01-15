@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import KofiButton from "@/components/KofiButton";
 
 interface GameResult {
   correctGuesses: number;
@@ -43,7 +44,6 @@ const Index = () => {
     if (state?.decklist) {
       setDecklist(state.decklist);
       setGameStarted(true);
-      // Clear the location state to prevent restarting the game on refresh
       window.history.replaceState({}, document.title);
     }
   }, [state]);
@@ -135,6 +135,11 @@ const Index = () => {
         {gameResult && (
           <ResultsDisplay results={gameResult} />
         )}
+
+        {/* Footer with Ko-fi Button */}
+        <footer className="text-center pt-8">
+          <KofiButton />
+        </footer>
       </div>
     </div>
   );

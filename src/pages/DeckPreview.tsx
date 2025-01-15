@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Play, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -44,11 +44,13 @@ interface CardSuccessRateStats {
 const DeckPreview = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { id } = useParams();
   const { toast } = useToast();
   const deck = location.state as DeckPreviewProps | null;
 
   useEffect(() => {
-    if (!deck) {
+    // Only redirect if we're not on the new deck route
+    if (!deck && id !== "new") {
       toast({
         title: "Error",
         description: "No deck data found. Redirecting to decks page.",
@@ -56,7 +58,7 @@ const DeckPreview = () => {
       });
       navigate("/decks");
     }
-  }, [deck, navigate, toast]);
+  }, [deck, navigate, toast, id]);
 
   const { data: deckStats } = useQuery({
     queryKey: ["deckStats", deck?.id],
@@ -72,7 +74,7 @@ const DeckPreview = () => {
     enabled: !!deck?.id,
   });
 
-  const { data: cardStats } = useQuery<CardStats>({
+  const { data: cardStats } = useQuery({
     queryKey: ["cardStats", deck?.id],
     queryFn: async (): Promise<CardStats> => {
       if (!deck?.id) return { successRates: [], totalCardsGuessed: 0 };
@@ -83,17 +85,20 @@ const DeckPreview = () => {
 
       if (!data) return { successRates: [], totalCardsGuessed: 0 };
 
-      const cardSuccessRates = data.reduce<Record<string, CardSuccessRateStats>>((acc, curr) => {
-        if (!curr.actual_card) return acc;
-        if (!acc[curr.actual_card]) {
-          acc[curr.actual_card] = { correct: 0, total: 0 };
-        }
-        acc[curr.actual_card].total++;
-        if (curr.correct_guess) {
-          acc[curr.actual_card].correct++;
-        }
-        return acc;
-      }, {});
+      const cardSuccessRates = data.reduce<Record<string, CardSuccessRateStats>>(
+        (acc, curr) => {
+          if (!curr.actual_card) return acc;
+          if (!acc[curr.actual_card]) {
+            acc[curr.actual_card] = { correct: 0, total: 0 };
+          }
+          acc[curr.actual_card].total++;
+          if (curr.correct_guess) {
+            acc[curr.actual_card].correct++;
+          }
+          return acc;
+        },
+        {}
+      );
 
       const totalCardsGuessed = Object.values(cardSuccessRates).reduce(
         (sum, stats) => sum + stats.total,
@@ -116,13 +121,14 @@ const DeckPreview = () => {
     enabled: !!deck?.id,
   });
 
-  if (!deck) return null;
-
   const totalGames = deckStats?.length || 0;
-  const averageAccuracy = deckStats?.reduce((acc, curr) => acc + (curr.accuracy || 0), 0) / totalGames || 0;
+  const averageAccuracy =
+    deckStats?.reduce((acc, curr) => acc + (curr.accuracy || 0), 0) /
+      totalGames || 0;
   const totalCardsGuessed = cardStats?.totalCardsGuessed || 0;
 
   const handlePlay = () => {
+    if (!deck) return;
     navigate("/game", {
       state: {
         decklist: deck.cards,
@@ -132,8 +138,38 @@ const DeckPreview = () => {
   };
 
   const handlePrint = () => {
+    if (!deck?.id) return;
     navigate(`/decks/${deck.id}/print`);
   };
+
+  // If we're on the new deck route, show a message
+  if (id === "new") {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">
+        <div className="max-w-6xl mx-auto space-y-8">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate("/decks")}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-3xl font-semibold text-foreground/80">
+              Create New Deck
+            </h1>
+          </div>
+          <Card className="p-6">
+            <p className="text-muted-foreground">
+              This feature is coming soon. Please check back later!
+            </p>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (!deck) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">
@@ -150,7 +186,9 @@ const DeckPreview = () => {
             <h1 className="text-3xl font-semibold text-foreground/80">
               <span className="hidden md:inline">{deck.name}</span>
               <span className="md:hidden">
-                {deck.name.length > 12 ? `${deck.name.slice(0, 12)}...` : deck.name}
+                {deck.name.length > 12
+                  ? `${deck.name.slice(0, 12)}...`
+                  : deck.name}
               </span>
             </h1>
           </div>
@@ -182,18 +220,12 @@ const DeckPreview = () => {
             </Card>
           </div>
           <div className="grid grid-cols-1 gap-4">
-            <StatsCard
-              title="Total Games Played"
-              value={totalGames}
-            />
+            <StatsCard title="Total Games Played" value={totalGames} />
             <StatsCard
               title="Average Accuracy"
               value={`${averageAccuracy.toFixed(1)}%`}
             />
-            <StatsCard
-              title="Total Cards Guessed"
-              value={totalCardsGuessed}
-            />
+            <StatsCard title="Total Cards Guessed" value={totalCardsGuessed} />
           </div>
         </div>
 
@@ -218,7 +250,9 @@ const DeckPreview = () => {
                   />
                   <Tooltip
                     formatter={(value: number) => [`${value.toFixed(1)}%`]}
-                    labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                    labelFormatter={(label) =>
+                      new Date(label).toLocaleDateString()
+                    }
                   />
                   <Line
                     type="monotone"
@@ -235,7 +269,11 @@ const DeckPreview = () => {
             <h2 className="text-xl font-semibold mb-4">Card Success Rates</h2>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={cardStats?.successRates} layout="vertical" margin={{ left: 100 }}>
+                <BarChart
+                  data={cardStats?.successRates}
+                  layout="vertical"
+                  margin={{ left: 100 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
                     type="number"
@@ -248,7 +286,9 @@ const DeckPreview = () => {
                     width={90}
                     tick={{ fontSize: 12 }}
                   />
-                  <Tooltip formatter={(value: number) => [`${value.toFixed(1)}%`]} />
+                  <Tooltip
+                    formatter={(value: number) => [`${value.toFixed(1)}%`]}
+                  />
                   <Bar
                     dataKey="successRate"
                     fill="hsl(var(--primary))"

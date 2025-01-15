@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import KofiButton from "@/components/KofiButton";
 
 interface GameResult {
   correctGuesses: number;
@@ -137,11 +136,6 @@ const Index = () => {
           <ResultsDisplay results={gameResult} />
         )}
       </div>
-      
-      {/* Footer with Ko-fi button */}
-      <footer className="w-full flex flex-col items-center gap-4 mt-8 py-4">
-        <KofiButton />
-      </footer>
     </div>
   );
 };

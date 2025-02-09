@@ -48,16 +48,16 @@ const BinderHelper = () => {
       grids.push(
         <div key={pageNumber} className="space-y-2 mb-8">
           <h2 className="text-lg font-semibold text-center">Page {pageNumber}</h2>
-          <div className="grid grid-cols-3 gap-2 max-w-xl mx-auto">
+          <div className="grid grid-cols-3 gap-2 max-w-[400px] mx-auto">
             {currentPageCards.map((card, index) => {
               const absoluteIndex = i + index + 1;
               const slotNumber = (index % 9) + 1;
               return (
                 <div 
                   key={index} 
-                  className="aspect-[2.5/3.5] bg-muted rounded-lg overflow-hidden flex items-center justify-center p-1"
+                  className="aspect-[2.5/3.5] bg-muted rounded-lg overflow-hidden flex items-center justify-center p-1 h-24"
                 >
-                  <p className="text-[10px] text-muted-foreground text-center">
+                  <p className="text-xs font-semibold text-muted-foreground text-center">
                     {`Slot ${slotNumber} (${absoluteIndex})`}<br/>
                     {card}
                   </p>

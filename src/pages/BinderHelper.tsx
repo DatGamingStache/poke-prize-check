@@ -37,6 +37,41 @@ const BinderHelper = () => {
     setProcessedCards(cards);
   };
 
+  const renderGrids = () => {
+    const grids = [];
+    const cardsPerGrid = 9; // 3x3 grid
+
+    for (let i = 0; i < processedCards.length; i += cardsPerGrid) {
+      const pageNumber = Math.floor(i / cardsPerGrid) + 1;
+      const currentPageCards = processedCards.slice(i, i + cardsPerGrid);
+      
+      grids.push(
+        <div key={pageNumber} className="space-y-2 mb-8">
+          <h2 className="text-lg font-semibold text-center">Page {pageNumber}</h2>
+          <div className="grid grid-cols-3 gap-2 max-w-xl mx-auto">
+            {currentPageCards.map((card, index) => {
+              const absoluteIndex = i + index + 1;
+              const slotNumber = (index % 9) + 1;
+              return (
+                <div 
+                  key={index} 
+                  className="aspect-[2.5/3.5] bg-muted rounded-lg overflow-hidden flex items-center justify-center p-1"
+                >
+                  <p className="text-[10px] text-muted-foreground text-center">
+                    {`Slot ${slotNumber} (${absoluteIndex})`}<br/>
+                    {card}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    return grids;
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold mb-6">Binder Helper</h1>
@@ -77,12 +112,8 @@ const BinderHelper = () => {
       </div>
 
       {processedCards.length > 0 && (
-        <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto">
-          {processedCards.map((card, index) => (
-            <div key={index} className="aspect-[2.5/3.5] bg-muted rounded-lg overflow-hidden flex items-center justify-center p-2">
-              <p className="text-xs text-muted-foreground text-center">{card}</p>
-            </div>
-          ))}
+        <div className="space-y-8">
+          {renderGrids()}
         </div>
       )}
     </div>

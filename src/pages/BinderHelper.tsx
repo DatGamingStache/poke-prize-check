@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -10,16 +10,38 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface GridSize {
   rows: number;
   columns: number;
 }
 
+interface CardState {
+  name: string;
+  isActive: boolean;
+}
+
 const BinderHelper = () => {
   const [cardList, setCardList] = useState<string>("");
   const [gridSize, setGridSize] = useState<string>("3x3");
-  const [processedCards, setProcessedCards] = useState<string[]>([]);
+  const [processedCards, setProcessedCards] = useState<CardState[]>([]);
+  const [binderName, setBinderName] = useState<string>("");
+  const [selectedCardToDeactivate, setSelectedCardToDeactivate] = useState<number | null>(null);
+  const { toast } = useToast();
 
   const gridSizeOptions = {
     "2x2": { rows: 2, columns: 2 },
@@ -32,9 +54,66 @@ const BinderHelper = () => {
     const cards = cardList
       .split("\n")
       .map(line => line.trim())
-      .filter(line => line.length > 0);
+      .filter(line => line.length > 0)
+      .map(card => ({ name: card, isActive: true }));
 
     setProcessedCards(cards);
+  };
+
+  const handleCardClick = (index: number, currentState: boolean) => {
+    if (currentState) {
+      // If card is active, show confirmation dialog before deactivating
+      setSelectedCardToDeactivate(index);
+    } else {
+      // If card is inactive, activate it immediately
+      const updatedCards = [...processedCards];
+      updatedCards[index].isActive = true;
+      setProcessedCards(updatedCards);
+    }
+  };
+
+  const confirmDeactivateCard = () => {
+    if (selectedCardToDeactivate !== null) {
+      const updatedCards = [...processedCards];
+      updatedCards[selectedCardToDeactivate].isActive = false;
+      setProcessedCards(updatedCards);
+      setSelectedCardToDeactivate(null);
+    }
+  };
+
+  const saveBinder = async () => {
+    if (!binderName) {
+      toast({
+        title: "Error",
+        description: "Please enter a binder name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('binder_sets')
+        .insert([
+          {
+            name: binderName,
+            cards: processedCards,
+          }
+        ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Binder saved successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save binder",
+        variant: "destructive",
+      });
+    }
   };
 
   const renderGrids = () => {
@@ -55,11 +134,25 @@ const BinderHelper = () => {
               return (
                 <div 
                   key={index} 
-                  className="aspect-[2.5/3.5] bg-muted rounded-lg overflow-hidden flex items-center justify-center p-1 h-24"
+                  onClick={() => handleCardClick(i + index, card.isActive)}
+                  className={`
+                    aspect-[2.5/3.5] 
+                    ${card.isActive ? 'bg-muted' : 'bg-green-200'} 
+                    rounded-lg 
+                    overflow-hidden 
+                    flex 
+                    items-center 
+                    justify-center 
+                    p-1 
+                    h-12
+                    cursor-pointer
+                    hover:opacity-80
+                    transition-all
+                  `}
                 >
-                  <p className="text-xs font-semibold text-muted-foreground text-center">
+                  <p className="text-sm font-bold text-muted-foreground text-center">
                     {`Slot ${slotNumber} (${absoluteIndex})`}<br/>
-                    {card}
+                    {card.name}
                   </p>
                 </div>
               );
@@ -77,6 +170,16 @@ const BinderHelper = () => {
       <h1 className="text-3xl font-bold mb-6">Binder Helper</h1>
 
       <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="binder-name">Binder Name</Label>
+          <Input
+            id="binder-name"
+            value={binderName}
+            onChange={(e) => setBinderName(e.target.value)}
+            placeholder="Enter binder name..."
+          />
+        </div>
+
         <div className="space-y-2">
           <Label htmlFor="grid-size">Grid Size</Label>
           <Select
@@ -106,9 +209,16 @@ const BinderHelper = () => {
           />
         </div>
 
-        <Button onClick={processCards}>
-          Process Cards
-        </Button>
+        <div className="space-x-2">
+          <Button onClick={processCards}>
+            Process Cards
+          </Button>
+          {processedCards.length > 0 && (
+            <Button onClick={saveBinder} variant="secondary">
+              Save Binder
+            </Button>
+          )}
+        </div>
       </div>
 
       {processedCards.length > 0 && (
@@ -116,6 +226,21 @@ const BinderHelper = () => {
           {renderGrids()}
         </div>
       )}
+
+      <AlertDialog open={selectedCardToDeactivate !== null} onOpenChange={() => setSelectedCardToDeactivate(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deactivate Card</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to deactivate this card? You can reactivate it later by clicking again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeactivateCard}>Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

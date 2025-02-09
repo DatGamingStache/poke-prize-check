@@ -37,9 +37,6 @@ const BinderHelper = () => {
     setProcessedCards(cards);
   };
 
-  const selectedSize: GridSize = gridSizeOptions[gridSize as keyof typeof gridSizeOptions];
-  const gridClass = `grid gap-4 grid-cols-${selectedSize.columns}`;
-
   return (
     <div className="container mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold mb-6">Binder Helper</h1>
@@ -80,10 +77,10 @@ const BinderHelper = () => {
       </div>
 
       {processedCards.length > 0 && (
-        <div className={gridClass}>
+        <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto">
           {processedCards.map((card, index) => (
-            <div key={index} className="w-full aspect-[2.5/3.5] bg-muted rounded-lg overflow-hidden flex items-center justify-center p-4">
-              <p className="text-sm text-muted-foreground text-center">{card}</p>
+            <div key={index} className="aspect-[2.5/3.5] bg-muted rounded-lg overflow-hidden flex items-center justify-center p-2">
+              <p className="text-xs text-muted-foreground text-center">{card}</p>
             </div>
           ))}
         </div>

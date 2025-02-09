@@ -38,12 +38,57 @@ const BinderSetView = () => {
 
       if (error) throw error;
 
-      setBinderSet(data);
+      // Transform the data to match our expected types
+      const transformedData: BinderSet = {
+        id: data.id,
+        name: data.name,
+        created_at: data.created_at,
+        cards: data.cards as CardState[]
+      };
+
+      setBinderSet(transformedData);
     } catch (error) {
       console.error('Error loading binder set:', error);
       toast({
         title: "Error",
         description: "Failed to load binder set",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleCard = async (pageIndex: number, cardIndex: number) => {
+    if (!binderSet) return;
+
+    const absoluteIndex = pageIndex * 9 + cardIndex;
+    const updatedCards = [...binderSet.cards];
+    updatedCards[absoluteIndex] = {
+      ...updatedCards[absoluteIndex],
+      isActive: !updatedCards[absoluteIndex].isActive
+    };
+
+    try {
+      const { error } = await supabase
+        .from('binder_sets')
+        .update({ cards: updatedCards })
+        .eq('id', binderSet.id);
+
+      if (error) throw error;
+
+      setBinderSet({
+        ...binderSet,
+        cards: updatedCards
+      });
+
+      toast({
+        title: "Success",
+        description: "Card status updated",
+      });
+    } catch (error) {
+      console.error('Error updating card:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update card status",
         variant: "destructive",
       });
     }
@@ -56,22 +101,23 @@ const BinderSetView = () => {
     const cardsPerGrid = 9; // 3x3 grid
 
     for (let i = 0; i < binderSet.cards.length; i += cardsPerGrid) {
-      const pageNumber = Math.floor(i / cardsPerGrid) + 1;
+      const pageNumber = Math.floor(i / cardsPerGrid);
       const currentPageCards = binderSet.cards.slice(i, i + cardsPerGrid);
       
       grids.push(
         <div key={pageNumber} className="space-y-2 mb-8">
-          <h2 className="text-lg font-semibold text-center">Page {pageNumber}</h2>
+          <h2 className="text-lg font-semibold text-center">Page {pageNumber + 1}</h2>
           <div className="grid grid-cols-3 gap-2 max-w-[400px] mx-auto">
             {currentPageCards.map((card, index) => {
               const absoluteIndex = i + index + 1;
               const slotNumber = (index % 9) + 1;
               return (
                 <div 
-                  key={index} 
+                  key={index}
+                  onClick={() => toggleCard(pageNumber, index)}
                   className={`
                     aspect-[2.5/3.5] 
-                    ${card.isActive ? 'bg-muted' : 'bg-green-200'} 
+                    ${!card.isActive ? 'bg-muted' : 'bg-green-200'} 
                     rounded-lg 
                     overflow-hidden 
                     flex 
@@ -79,6 +125,9 @@ const BinderSetView = () => {
                     justify-center 
                     p-1 
                     h-24
+                    cursor-pointer
+                    transition-colors
+                    hover:opacity-80
                   `}
                 >
                   <p className="text-xs font-semibold text-muted-foreground text-center">

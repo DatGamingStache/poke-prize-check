@@ -64,10 +64,17 @@ const BinderSetView = () => {
     if (!binderSet) return;
 
     const absoluteIndex = pageIndex * 9 + cardIndex;
+    const currentCard = binderSet.cards[absoluteIndex];
+    
+    // Only allow toggling from inactive to active
+    if (currentCard.isActive) {
+      return; // Don't allow deactivating cards in view mode
+    }
+
     const updatedCards = [...binderSet.cards];
     updatedCards[absoluteIndex] = {
       ...updatedCards[absoluteIndex],
-      isActive: !updatedCards[absoluteIndex].isActive
+      isActive: true
     };
 
     try {
@@ -90,7 +97,7 @@ const BinderSetView = () => {
 
       toast({
         title: "Success",
-        description: "Card status updated",
+        description: "Card marked as found",
       });
     } catch (error) {
       console.error('Error updating card:', error);

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,20 +55,20 @@ const BinderHelper = () => {
       .split("\n")
       .map(line => line.trim())
       .filter(line => line.length > 0)
-      .map(card => ({ name: card, isActive: true }));
+      .map(card => ({ name: card, isActive: false }));  // Initialize all cards as inactive
 
     setProcessedCards(cards);
   };
 
   const handleCardClick = (index: number, currentState: boolean) => {
-    if (currentState) {
-      // If card is active, show confirmation dialog before deactivating
-      setSelectedCardToDeactivate(index);
-    } else {
+    if (!currentState) {
       // If card is inactive, activate it immediately
       const updatedCards = [...processedCards];
       updatedCards[index].isActive = true;
       setProcessedCards(updatedCards);
+    } else {
+      // If card is active, show confirmation dialog before deactivating
+      setSelectedCardToDeactivate(index);
     }
   };
 
@@ -142,7 +141,7 @@ const BinderHelper = () => {
                   onClick={() => handleCardClick(i + index, card.isActive)}
                   className={`
                     aspect-[2.5/3.5] 
-                    ${card.isActive ? 'bg-muted' : 'bg-green-200'} 
+                    ${card.isActive ? 'bg-green-200' : 'bg-muted'} 
                     rounded-lg 
                     overflow-hidden 
                     flex 

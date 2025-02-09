@@ -94,12 +94,10 @@ const BinderHelper = () => {
     try {
       const { data, error } = await supabase
         .from('binder_sets')
-        .insert([
-          {
-            name: binderName,
-            cards: processedCards,
-          }
-        ]);
+        .insert({
+          name: binderName,
+          cards: processedCards
+        });
 
       if (error) throw error;
 
@@ -144,13 +142,13 @@ const BinderHelper = () => {
                     items-center 
                     justify-center 
                     p-1 
-                    h-12
+                    h-24
                     cursor-pointer
                     hover:opacity-80
                     transition-all
                   `}
                 >
-                  <p className="text-sm font-bold text-muted-foreground text-center">
+                  <p className="text-xs font-semibold text-muted-foreground text-center">
                     {`Slot ${slotNumber} (${absoluteIndex})`}<br/>
                     {card.name}
                   </p>

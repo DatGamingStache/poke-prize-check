@@ -12,7 +12,8 @@ import History from "@/pages/History";
 import GameDetails from "@/pages/GameDetails";
 import Leaderboard from "@/pages/Leaderboard";
 import PrintDeckList from "@/pages/PrintDeckList";
-import BinderHelper from "@/pages/BinderHelper";
+import BinderSetList from "@/pages/BinderSetList";
+import CreateBinderSet from "@/pages/CreateBinderSet";
 
 const queryClient = new QueryClient();
 
@@ -31,7 +32,8 @@ function App() {
           <Route path="/game-details/:id" element={<GameDetails />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/print-decklist/:id" element={<PrintDeckList />} />
-          <Route path="/binder-helper" element={<BinderHelper />} />
+          <Route path="/binder-helper" element={<BinderSetList />} />
+          <Route path="/binder-helper/create" element={<CreateBinderSet />} />
           {/* Add an alias route for the print functionality */}
           <Route path="/decks/:id/print" element={<PrintDeckList />} />
         </Routes>

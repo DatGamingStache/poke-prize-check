@@ -43,7 +43,10 @@ const BinderSetView = () => {
         id: data.id,
         name: data.name,
         created_at: data.created_at,
-        cards: data.cards as CardState[]
+        cards: (data.cards as any[]).map((card: any) => ({
+          name: card.name,
+          isActive: card.isActive
+        }))
       };
 
       setBinderSet(transformedData);
@@ -70,7 +73,12 @@ const BinderSetView = () => {
     try {
       const { error } = await supabase
         .from('binder_sets')
-        .update({ cards: updatedCards })
+        .update({ 
+          cards: updatedCards.map(card => ({
+            name: card.name,
+            isActive: card.isActive
+          }))
+        })
         .eq('id', binderSet.id);
 
       if (error) throw error;
@@ -117,7 +125,7 @@ const BinderSetView = () => {
                   onClick={() => toggleCard(pageNumber, index)}
                   className={`
                     aspect-[2.5/3.5] 
-                    ${!card.isActive ? 'bg-muted' : 'bg-green-200'} 
+                    ${card.isActive ? 'bg-green-200' : 'bg-muted'} 
                     rounded-lg 
                     overflow-hidden 
                     flex 

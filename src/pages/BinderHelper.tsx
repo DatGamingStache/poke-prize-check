@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 interface GridSize {
   rows: number;
@@ -92,11 +93,17 @@ const BinderHelper = () => {
     }
 
     try {
+      // Convert CardState[] to a format that matches the Json type
+      const cardsJson: Json = processedCards.map(card => ({
+        name: card.name,
+        isActive: card.isActive
+      }));
+
       const { data, error } = await supabase
         .from('binder_sets')
         .insert({
           name: binderName,
-          cards: processedCards
+          cards: cardsJson
         });
 
       if (error) throw error;

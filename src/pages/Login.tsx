@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auth } from "@supabase/auth-ui-react";
@@ -11,6 +12,12 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
+    // First clear any existing session to prevent token refresh errors
+    const clearSession = async () => {
+      await supabase.auth.signOut();
+    };
+    clearSession();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
         navigate("/decks");

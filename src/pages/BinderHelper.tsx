@@ -10,8 +10,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { searchCard } from "@/utils/pokemonCards";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface GridSize {
   rows: number;
@@ -22,8 +20,6 @@ const BinderHelper = () => {
   const [cardList, setCardList] = useState<string>("");
   const [gridSize, setGridSize] = useState<string>("3x3");
   const [processedCards, setProcessedCards] = useState<string[]>([]);
-  const [cardImages, setCardImages] = useState<Record<string, string | null>>({});
-  const [isLoading, setIsLoading] = useState(false);
 
   const gridSizeOptions = {
     "2x2": { rows: 2, columns: 2 },
@@ -32,24 +28,13 @@ const BinderHelper = () => {
     "4x4": { rows: 4, columns: 4 },
   };
 
-  const processCards = async () => {
-    setIsLoading(true);
+  const processCards = () => {
     const cards = cardList
       .split("\n")
       .map(line => line.trim())
       .filter(line => line.length > 0);
 
     setProcessedCards(cards);
-
-    // Fetch images for all cards
-    const images: Record<string, string | null> = {};
-    for (const cardName of cards) {
-      const card = await searchCard(cardName);
-      images[cardName] = card?.images.small || null;
-    }
-
-    setCardImages(images);
-    setIsLoading(false);
   };
 
   const selectedSize: GridSize = gridSizeOptions[gridSize as keyof typeof gridSizeOptions];
@@ -89,7 +74,7 @@ const BinderHelper = () => {
           />
         </div>
 
-        <Button onClick={processCards} disabled={isLoading}>
+        <Button onClick={processCards}>
           Process Cards
         </Button>
       </div>
@@ -97,21 +82,8 @@ const BinderHelper = () => {
       {processedCards.length > 0 && (
         <div className={gridClass}>
           {processedCards.map((card, index) => (
-            <div key={index} className="w-full aspect-[2.5/3.5] bg-muted rounded-lg overflow-hidden">
-              {isLoading ? (
-                <Skeleton className="w-full h-full" />
-              ) : cardImages[card] ? (
-                <img
-                  src={cardImages[card] || ''}
-                  alt={card}
-                  className="w-full h-full object-contain"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center p-4 text-center">
-                  <p className="text-sm text-muted-foreground">{card}</p>
-                </div>
-              )}
+            <div key={index} className="w-full aspect-[2.5/3.5] bg-muted rounded-lg overflow-hidden flex items-center justify-center p-4">
+              <p className="text-sm text-muted-foreground text-center">{card}</p>
             </div>
           ))}
         </div>

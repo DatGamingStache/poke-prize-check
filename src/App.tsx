@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,6 +12,7 @@ import History from "@/pages/History";
 import GameDetails from "@/pages/GameDetails";
 import Leaderboard from "@/pages/Leaderboard";
 import PrintDeckList from "@/pages/PrintDeckList";
+import BinderHelper from "@/pages/BinderHelper";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +31,7 @@ function App() {
           <Route path="/game-details/:id" element={<GameDetails />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/print-decklist/:id" element={<PrintDeckList />} />
+          <Route path="/binder-helper" element={<BinderHelper />} />
           {/* Add an alias route for the print functionality */}
           <Route path="/decks/:id/print" element={<PrintDeckList />} />
         </Routes>

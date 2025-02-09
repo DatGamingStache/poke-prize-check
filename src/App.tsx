@@ -14,6 +14,7 @@ import Leaderboard from "@/pages/Leaderboard";
 import PrintDeckList from "@/pages/PrintDeckList";
 import BinderSetList from "@/pages/BinderSetList";
 import CreateBinderSet from "@/pages/CreateBinderSet";
+import BinderSetView from "@/pages/BinderSetView";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ function App() {
           <Route path="/print-decklist/:id" element={<PrintDeckList />} />
           <Route path="/binder-helper" element={<BinderSetList />} />
           <Route path="/binder-helper/create" element={<CreateBinderSet />} />
+          <Route path="/binder-helper/:id" element={<BinderSetView />} />
           {/* Add an alias route for the print functionality */}
           <Route path="/decks/:id/print" element={<PrintDeckList />} />
         </Routes>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -186,7 +185,15 @@ const PriceComparisons = () => {
             throw new Error('Invalid data format');
           }
 
-          const validatedData = cardData.map((item: CardData) => {
+          const deduplicatedData = cardData.reduce((acc, item) => {
+            const key = `${item.name}|${item.setName || ''}`;
+            if (!acc[key] || acc[key].lowestPrice < item.lowestPrice) {
+              acc[key] = item;
+            }
+            return acc;
+          }, {} as Record<string, CardData>);
+
+          const validatedData = Object.values(deduplicatedData).map((item: CardData) => {
             if (!item.name || typeof item.name !== 'string') {
               throw new Error('Each item must have a valid name');
             }
@@ -224,7 +231,6 @@ const PriceComparisons = () => {
 
           if (recordError) throw recordError;
 
-          // Update the upsert operation to handle duplicates
           const { error: insertError } = await supabase
             .from('static_card_prices')
             .upsert(validatedData, {

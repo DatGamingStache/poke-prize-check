@@ -33,7 +33,21 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// Define the expected structure of price data
+// Define the expected structure of the uploaded card data
+interface CardData {
+  id: number;
+  name: string;
+  lowestPrice: number;
+  setName: string;
+  customAttributes: {
+    cardType: string[];
+    cardTypeB?: string;
+    hp?: string;
+    [key: string]: any;
+  };
+}
+
+// Define the structure we want to store
 interface PriceData {
   card_name: string;
   set_name?: string;
@@ -104,23 +118,24 @@ const PriceComparisons = () => {
         try {
           const content = JSON.parse(e.target?.result as string);
           if (!Array.isArray(content)) {
-            throw new Error('File must contain an array of price data');
+            throw new Error('File must contain an array of card data');
           }
 
-          // Validate the data structure
-          const validatedData = content.map((item: any): PriceData => {
-            if (!item.card_name || typeof item.card_name !== 'string') {
-              throw new Error('Each item must have a valid card_name');
+          // Transform and validate the data structure
+          const validatedData = content.map((item: CardData): PriceData => {
+            if (!item.name || typeof item.name !== 'string') {
+              throw new Error('Each item must have a valid name');
             }
-            if (!item.local_price || typeof item.local_price !== 'number') {
-              throw new Error('Each item must have a valid local_price');
+            if (typeof item.lowestPrice !== 'number') {
+              throw new Error('Each item must have a valid lowestPrice');
             }
+
             return {
-              card_name: item.card_name,
-              set_name: item.set_name || null,
-              collector_number: item.collector_number || null,
-              local_price: item.local_price,
-              price_date: item.price_date || new Date().toISOString(),
+              card_name: item.name,
+              set_name: item.setName || null,
+              collector_number: null, // If you have a collector number field, map it here
+              local_price: item.lowestPrice,
+              price_date: new Date().toISOString(),
             };
           });
 
@@ -154,7 +169,7 @@ const PriceComparisons = () => {
             .insert(validatedData.map(item => ({
               card_name: item.card_name,
               set_name: item.set_name,
-              collector_number: item.collector_number,
+              collector_number: null,
               normal_price: item.local_price,
               price_date: item.price_date,
             })));
@@ -163,7 +178,7 @@ const PriceComparisons = () => {
 
           toast({
             title: "Success",
-            description: "Price data uploaded successfully",
+            description: `Successfully processed ${validatedData.length} cards`,
           });
           
           refetch();
@@ -173,6 +188,7 @@ const PriceComparisons = () => {
             description: error.message,
             variant: "destructive",
           });
+          console.error('Upload error:', error);
         }
       };
 
@@ -183,6 +199,7 @@ const PriceComparisons = () => {
         description: "Failed to upload file",
         variant: "destructive",
       });
+      console.error('File reading error:', error);
     } finally {
       setIsUploading(false);
     }
@@ -310,3 +327,4 @@ const PriceComparisons = () => {
 };
 
 export default PriceComparisons;
+

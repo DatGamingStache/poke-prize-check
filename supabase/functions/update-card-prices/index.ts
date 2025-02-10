@@ -1,7 +1,7 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import FirecrawlApp from '@mendable/firecrawl-js';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,75 +19,88 @@ serve(async (req) => {
     console.log('Starting card price update process');
     const { shopUrl } = await req.json();
 
-    // Initialize Firecrawl
-    const firecrawl = new FirecrawlApp({ apiKey: FIRECRAWL_API_KEY });
+    // Create Firecrawl instance using fetch
+    console.log('Initializing Firecrawl API connection');
+    const firecrawlHeaders = {
+      'Authorization': `Bearer ${FIRECRAWL_API_KEY}`,
+      'Content-Type': 'application/json',
+    };
 
-    // Scrape local shop website
+    // Scrape local shop website using Firecrawl API directly
     console.log('Scraping shop website:', shopUrl);
-    const crawlResponse = await firecrawl.crawlUrl(shopUrl, {
-      limit: 100,
-      scrapeOptions: {
-        formats: ['html'],
-        selectors: {
-          cards: {
-            selector: '.card-item', // Adjust based on actual website structure
-            type: 'list',
-            properties: {
-              name: '.card-name',
-              price: '.card-price',
-              set: '.card-set',
-              condition: '.card-condition'
+    const crawlResponse = await fetch('https://api.firecrawl.com/crawl', {
+      method: 'POST',
+      headers: firecrawlHeaders,
+      body: JSON.stringify({
+        url: shopUrl,
+        limit: 100,
+        scrapeOptions: {
+          formats: ['html'],
+          selectors: {
+            cards: {
+              selector: '.card-item',
+              type: 'list',
+              properties: {
+                name: '.card-name',
+                price: '.card-price',
+                set: '.card-set',
+                condition: '.card-condition'
+              }
             }
           }
         }
-      }
+      })
     });
 
-    if (!crawlResponse.success) {
+    const crawlData = await crawlResponse.json();
+    if (!crawlData.success) {
       throw new Error('Failed to scrape shop website');
     }
 
     // Process scraped data
-    const cards = crawlResponse.data.cards || [];
+    const cards = crawlData.data.cards || [];
     console.log(`Found ${cards.length} cards`);
 
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.39.7');
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Process each card
     for (const card of cards) {
-      // Store card market data
-      const { data: marketData, error: marketError } = await supabase
-        .from('card_market_data')
-        .upsert({
-          card_name: card.name,
-          set_name: card.set,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'card_name',
-          returning: 'minimal'
-        });
+      try {
+        // Store card market data
+        const { data: marketData, error: marketError } = await supabase
+          .from('card_market_data')
+          .upsert({
+            card_name: card.name,
+            set_name: card.set,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'card_name',
+            returning: 'minimal'
+          });
 
-      if (marketError) {
-        console.error('Error storing market data:', marketError);
-        continue;
-      }
+        if (marketError) {
+          console.error('Error storing market data:', marketError);
+          continue;
+        }
 
-      // Store local shop price
-      const { error: priceError } = await supabase
-        .from('card_prices')
-        .insert({
-          card_market_data_id: marketData?.[0]?.id,
-          source: 'local_shop',
-          price: parseFloat(card.price.replace(/[^0-9.]/g, '')),
-          condition: card.condition?.toUpperCase() || 'NM'
-        });
+        // Store local shop price
+        const { error: priceError } = await supabase
+          .from('card_prices')
+          .insert({
+            card_market_data_id: marketData?.[0]?.id,
+            source: 'local_shop',
+            price: parseFloat(card.price.replace(/[^0-9.]/g, '')),
+            condition: card.condition?.toUpperCase() || 'NM'
+          });
 
-      if (priceError) {
-        console.error('Error storing price:', priceError);
+        if (priceError) {
+          console.error('Error storing price:', priceError);
+        }
+      } catch (cardError) {
+        console.error('Error processing card:', card.name, cardError);
       }
     }
 

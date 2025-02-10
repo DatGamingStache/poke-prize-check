@@ -313,14 +313,14 @@ const PriceComparisons = () => {
       const { error: uploadsError } = await supabase
         .from("price_data_uploads")
         .delete()
-        .neq("id", "00000000-0000-0000-0000-000000000000");
+        .not('id', 'is', null);
 
       if (uploadsError) throw uploadsError;
 
       const { error: pricesError } = await supabase
         .from("static_card_prices")
         .delete()
-        .neq("id", "00000000-0000-0000-0000-000000000000");
+        .not('id', 'is', null);
 
       if (pricesError) throw pricesError;
 

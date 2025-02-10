@@ -283,6 +283,10 @@ const PriceComparisons = () => {
     switch (status) {
       case 'new':
         return <Badge className="bg-blue-500">New</Badge>;
+      case 'increased':
+        return <Badge variant="destructive">↑ Increased</Badge>;
+      case 'decreased':
+        return <Badge className="bg-green-500">↓ Decreased</Badge>;
       default:
         return null;
     }
@@ -488,23 +492,23 @@ const PriceComparisons = () => {
           <TableBody>
             {prices?.map((card) => (
               <TableRow 
-                key={`${card.card_name}-${card.set_name}-${card.collector_number}`}
+                key={`${card.card_name}-${card.set_name}-${card.collector_number}-${card.price_date}`}
                 className={getStatusColor(card.status)}
               >
                 <TableCell>{card.card_name}</TableCell>
                 <TableCell>{card.set_name}</TableCell>
                 <TableCell>{card.collector_number}</TableCell>
-                <TableCell>${card.local_price?.toFixed(2)}</TableCell>
+                <TableCell>${card.local_price?.toFixed(2) || "N/A"}</TableCell>
                 <TableCell className={
                   card.price_change_percentage > 0 ? 'text-red-600' :
                   card.price_change_percentage < 0 ? 'text-green-600' : ''
                 }>
-                  {card.price_change_percentage ? 
-                    `${card.price_change_percentage > 0 ? '+' : ''}${card.price_change_percentage.toFixed(2)}%` : 
-                    '-'}
+                  {card.price_change_percentage 
+                    ? `${card.price_change_percentage > 0 ? '+' : ''}${card.price_change_percentage.toFixed(2)}%` 
+                    : '-'}
                 </TableCell>
                 <TableCell>
-                  {new Date(card.price_date).toLocaleDateString()}
+                  {card.price_date ? new Date(card.price_date).toLocaleDateString() : 'N/A'}
                 </TableCell>
                 <TableCell>
                   {getStatusBadge(card.status)}

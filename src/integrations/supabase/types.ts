@@ -203,6 +203,39 @@ export type Database = {
           },
         ]
       }
+      price_data_uploads: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          filename: string
+          id: string
+          processed_count: number | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          filename: string
+          id?: string
+          processed_count?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          filename?: string
+          id?: string
+          processed_count?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       static_card_prices: {
         Row: {
           card_name: string

@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
-import { Home } from "lucide-react";
+import { Home, Upload } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -22,14 +22,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 const PriceComparisons = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [selectedSet, setSelectedSet] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Fetch price data
-  const { data: prices, isLoading } = useQuery({
+  const { data: prices, isLoading, refetch } = useQuery({
     queryKey: ["price-comparisons", selectedSet],
     queryFn: async () => {
       let query = supabase
@@ -70,6 +81,86 @@ const PriceComparisons = () => {
     averagePrice: prices?.reduce((acc, card) => acc + (card.local_price || 0), 0) / (prices?.length || 1) || 0,
     lastUpdate: prices?.[0]?.price_date ? new Date(prices[0].price_date).toLocaleDateString() : 'Never'
   };
+
+  // Handle file upload
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const reader = new FileReader();
+      
+      reader.onload = async (e) => {
+        try {
+          const content = JSON.parse(e.target?.result as string);
+          if (!Array.isArray(content)) {
+            throw new Error('File must contain an array of price data');
+          }
+
+          // Upload file to storage
+          const { data: fileData, error: uploadError } = await supabase.storage
+            .from('price_data')
+            .upload(`${Date.now()}-${file.name}`, file);
+
+          if (uploadError) throw uploadError;
+
+          // Create upload record
+          const { error: recordError } = await supabase
+            .from('price_data_uploads')
+            .insert({
+              filename: file.name,
+              status: 'processing',
+            });
+
+          if (recordError) throw recordError;
+
+          // Process and insert price data
+          const { error: insertError } = await supabase
+            .from('static_card_prices')
+            .insert(content.map((item: any) => ({
+              card_name: item.card_name,
+              set_name: item.set_name,
+              collector_number: item.collector_number,
+              normal_price: item.local_price,
+              price_date: item.price_date || new Date().toISOString(),
+            })));
+
+          if (insertError) throw insertError;
+
+          toast({
+            title: "Success",
+            description: "Price data uploaded successfully",
+          });
+          
+          refetch();
+        } catch (error: any) {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      };
+
+      reader.readAsText(file);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to upload file",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Prepare chart data
+  const chartData = prices?.map(price => ({
+    date: new Date(price.price_date).toLocaleDateString(),
+    price: price.local_price,
+    name: price.card_name,
+  })) || [];
 
   return (
     <div className="container mx-auto py-8">
@@ -120,6 +211,37 @@ const PriceComparisons = () => {
             ))}
           </SelectContent>
         </Select>
+
+        <div className="flex-1 flex justify-end">
+          <Input
+            type="file"
+            accept=".json"
+            onChange={handleFileUpload}
+            className="hidden"
+            id="price-data-upload"
+          />
+          <Button
+            onClick={() => document.getElementById("price-data-upload")?.click()}
+            disabled={isUploading}
+            className="gap-2"
+          >
+            <Upload className="h-4 w-4" />
+            {isUploading ? "Uploading..." : "Upload Price Data"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Price Chart */}
+      <div className="mb-8 h-[400px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip />
+            <Line type="monotone" dataKey="price" stroke="#8884d8" />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
 
       {isLoading ? (

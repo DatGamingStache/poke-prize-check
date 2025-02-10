@@ -65,6 +65,10 @@ type CardData = {
     hp?: string;
     [key: string]: any;
   };
+  isPresale: boolean;
+  rarityName: string;
+  setId: number;
+  productLineName: string;
 };
 
 type SortField = 'price' | 'name' | 'date' | 'change';
@@ -171,11 +175,17 @@ const PriceComparisons = () => {
       reader.onload = async (e) => {
         try {
           const content = JSON.parse(e.target?.result as string);
-          if (!Array.isArray(content)) {
-            throw new Error('File must contain an array of card data');
+          let cardData: CardData[];
+          
+          if (Array.isArray(content)) {
+            cardData = content;
+          } else if (typeof content === 'object' && content !== null) {
+            cardData = [content];
+          } else {
+            throw new Error('Invalid data format');
           }
 
-          const validatedData = content.map((item: CardData) => {
+          const validatedData = cardData.map((item: CardData) => {
             if (!item.name || typeof item.name !== 'string') {
               throw new Error('Each item must have a valid name');
             }
@@ -183,11 +193,13 @@ const PriceComparisons = () => {
               throw new Error('Each item must have a valid lowestPrice');
             }
 
+            const priceInDollars = item.lowestPrice / 100;
+
             return {
               card_name: item.name,
               set_name: item.setName || null,
               collector_number: null,
-              local_price: item.lowestPrice,
+              normal_price: priceInDollars,
               price_date: new Date().toISOString(),
             };
           });

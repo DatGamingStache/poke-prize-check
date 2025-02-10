@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
-import { Home, Upload, ArrowUpDown } from "lucide-react";
+import { Home, Upload, ArrowUpDown, Trash2, AlertOctagon } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -13,6 +13,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import StatsCard from "@/components/stats/StatsCard";
 import {
   Select,
@@ -67,6 +85,9 @@ const PriceComparisons = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [sortField, setSortField] = useState<SortField>('change');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [showUploadsModal, setShowUploadsModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [selectedUploadId, setSelectedUploadId] = useState<string | null>(null);
 
   const { data: prices, isLoading, refetch } = useQuery({
     queryKey: ["price-comparisons", selectedSet, sortField, sortOrder],
@@ -113,6 +134,19 @@ const PriceComparisons = () => {
       if (error) throw error;
       const uniqueSets = [...new Set(data.map(row => row.set_name))];
       return uniqueSets.filter(set => set !== null);
+    },
+  });
+
+  const { data: uploads, refetch: refetchUploads } = useQuery({
+    queryKey: ["price-uploads"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("price_data_uploads")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -256,6 +290,70 @@ const PriceComparisons = () => {
     }
   };
 
+  const handleDeleteUpload = async (uploadId: string) => {
+    try {
+      const { error: deleteError } = await supabase
+        .from("price_data_uploads")
+        .delete()
+        .eq("id", uploadId);
+
+      if (deleteError) throw deleteError;
+
+      const { error: pricesError } = await supabase
+        .from("static_card_prices")
+        .delete()
+        .eq("upload_id", uploadId);
+
+      if (pricesError) throw pricesError;
+
+      toast({
+        title: "Success",
+        description: "Upload deleted successfully",
+      });
+
+      refetchUploads();
+      refetch();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleClearAllData = async () => {
+    try {
+      const { error: uploadsError } = await supabase
+        .from("price_data_uploads")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000");
+
+      if (uploadsError) throw uploadsError;
+
+      const { error: pricesError } = await supabase
+        .from("static_card_prices")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000");
+
+      if (pricesError) throw pricesError;
+
+      toast({
+        title: "Success",
+        description: "All price data cleared successfully",
+      });
+
+      refetchUploads();
+      refetch();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
@@ -306,7 +404,14 @@ const PriceComparisons = () => {
           </SelectContent>
         </Select>
 
-        <div className="flex-1 flex justify-end">
+        <div className="flex-1 flex justify-end gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setShowUploadsModal(true)}
+            className="gap-2"
+          >
+            Manage Uploads
+          </Button>
           <Input
             type="file"
             accept=".json"
@@ -389,6 +494,100 @@ const PriceComparisons = () => {
           </TableBody>
         </Table>
       )}
+
+      <Dialog open={showUploadsModal} onOpenChange={setShowUploadsModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Manage Price Data Uploads</DialogTitle>
+            <DialogDescription>
+              View and manage your uploaded price data files
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[400px] overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Filename</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {uploads?.map((upload) => (
+                  <TableRow key={upload.id}>
+                    <TableCell>{upload.filename}</TableCell>
+                    <TableCell>
+                      {new Date(upload.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedUploadId(upload.id);
+                          setShowDeleteConfirm(true);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <DialogFooter className="sm:justify-between">
+            <Button
+              variant="destructive"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="gap-2"
+            >
+              <AlertOctagon className="h-4 w-4" />
+              Clear All Data
+            </Button>
+            <Button variant="outline" onClick={() => setShowUploadsModal(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {selectedUploadId ? "Delete Upload" : "Clear All Data"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedUploadId
+                ? "Are you sure you want to delete this upload? This action cannot be undone."
+                : "Are you sure you want to clear all price data? This action cannot be undone."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setSelectedUploadId(null);
+              setShowDeleteConfirm(false);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (selectedUploadId) {
+                  handleDeleteUpload(selectedUploadId);
+                } else {
+                  handleClearAllData();
+                }
+                setSelectedUploadId(null);
+                setShowDeleteConfirm(false);
+                setShowUploadsModal(false);
+              }}
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

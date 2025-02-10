@@ -60,6 +60,74 @@ export type Database = {
         }
         Relationships: []
       }
+      card_market_data: {
+        Row: {
+          card_name: string
+          collector_number: string | null
+          created_at: string
+          id: string
+          rarity: string | null
+          set_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          card_name: string
+          collector_number?: string | null
+          created_at?: string
+          id?: string
+          rarity?: string | null
+          set_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          card_name?: string
+          collector_number?: string | null
+          created_at?: string
+          id?: string
+          rarity?: string | null
+          set_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      card_prices: {
+        Row: {
+          card_market_data_id: string | null
+          condition: Database["public"]["Enums"]["card_condition"]
+          created_at: string
+          id: string
+          is_foil: boolean | null
+          price: number
+          source: string
+        }
+        Insert: {
+          card_market_data_id?: string | null
+          condition?: Database["public"]["Enums"]["card_condition"]
+          created_at?: string
+          id?: string
+          is_foil?: boolean | null
+          price: number
+          source: string
+        }
+        Update: {
+          card_market_data_id?: string | null
+          condition?: Database["public"]["Enums"]["card_condition"]
+          created_at?: string
+          id?: string
+          is_foil?: boolean | null
+          price?: number
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_prices_card_market_data_id_fkey"
+            columns: ["card_market_data_id"]
+            isOneToOne: false
+            referencedRelation: "card_market_data"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       decklists: {
         Row: {
           cards: string
@@ -228,12 +296,25 @@ export type Database = {
         }
         Relationships: []
       }
+      price_comparisons: {
+        Row: {
+          card_name: string | null
+          collector_number: string | null
+          local_price: number | null
+          price_date: string | null
+          price_difference_percentage: number | null
+          rarity: string | null
+          set_name: string | null
+          tcgplayer_price: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      card_condition: "NM" | "LP" | "MP" | "HP" | "DMG"
     }
     CompositeTypes: {
       [_ in never]: never

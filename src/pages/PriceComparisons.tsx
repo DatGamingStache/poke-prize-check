@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
+import { Home } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -23,6 +25,7 @@ import {
 
 const PriceComparisons = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [selectedSet, setSelectedSet] = useState<string | null>(null);
 
   // Fetch price data
@@ -70,7 +73,17 @@ const PriceComparisons = () => {
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">Card Price Reference</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Card Price Reference</h1>
+        <Button 
+          variant="outline" 
+          onClick={() => navigate("/decks")}
+          className="gap-2"
+        >
+          <Home className="h-4 w-4" />
+          Back to Dashboard
+        </Button>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <StatsCard

@@ -24,11 +24,13 @@ serve(async (req) => {
     const firecrawlHeaders = {
       'Authorization': `Bearer ${FIRECRAWL_API_KEY}`,
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'User-Agent': 'Supabase Edge Function'
     };
 
     // Scrape local shop website using Firecrawl API directly
     console.log('Scraping shop website:', shopUrl);
-    const crawlResponse = await fetch('https://api.firecrawl.com/crawl', {
+    const crawlResponse = await fetch('https://api.firecrawl.com/v1/crawl', {
       method: 'POST',
       headers: firecrawlHeaders,
       body: JSON.stringify({
@@ -51,6 +53,12 @@ serve(async (req) => {
         }
       })
     });
+
+    if (!crawlResponse.ok) {
+      const errorText = await crawlResponse.text();
+      console.error('Firecrawl API error:', errorText);
+      throw new Error(`Firecrawl API returned ${crawlResponse.status}: ${errorText}`);
+    }
 
     const crawlData = await crawlResponse.json();
     if (!crawlData.success) {

@@ -290,12 +290,26 @@ const PriceComparisons = () => {
 
   const handleDeleteUpload = async (uploadId: string) => {
     try {
-      const { error: pricesError } = await supabase
-        .from("static_card_prices")
-        .delete()
-        .eq("upload_id", uploadId);
+      setIsUploading(true);
 
-      if (pricesError) throw pricesError;
+      const { data: relatedPrices, error: checkError } = await supabase
+        .from("static_card_prices")
+        .select("id")
+        .eq("upload_id", uploadId)
+        .limit(1);
+
+      if (checkError) {
+        throw checkError;
+      }
+
+      if (relatedPrices && relatedPrices.length > 0) {
+        const { error: pricesError } = await supabase
+          .from("static_card_prices")
+          .delete()
+          .eq("upload_id", uploadId);
+
+        if (pricesError) throw pricesError;
+      }
 
       const { error: deleteError } = await supabase
         .from("price_data_uploads")
@@ -309,25 +323,23 @@ const PriceComparisons = () => {
         description: "Upload deleted successfully",
       });
 
-      refetchUploads();
-      refetch();
+      await refetchUploads();
+      await refetch();
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to delete upload",
         variant: "destructive",
       });
+      console.error('Delete error:', error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const handleClearAllData = async () => {
     try {
-      const { error: uploadsError } = await supabase
-        .from("price_data_uploads")
-        .delete()
-        .not('id', 'is', null);
-
-      if (uploadsError) throw uploadsError;
+      setIsUploading(true);
 
       const { error: pricesError } = await supabase
         .from("static_card_prices")
@@ -336,19 +348,29 @@ const PriceComparisons = () => {
 
       if (pricesError) throw pricesError;
 
+      const { error: uploadsError } = await supabase
+        .from("price_data_uploads")
+        .delete()
+        .not('id', 'is', null);
+
+      if (uploadsError) throw uploadsError;
+
       toast({
         title: "Success",
         description: "All price data cleared successfully",
       });
 
-      refetchUploads();
-      refetch();
+      await refetchUploads();
+      await refetch();
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to clear data",
         variant: "destructive",
       });
+      console.error('Clear data error:', error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -507,6 +529,7 @@ const PriceComparisons = () => {
                 <TableRow>
                   <TableHead>Filename</TableHead>
                   <TableHead>Date</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
@@ -517,6 +540,7 @@ const PriceComparisons = () => {
                     <TableCell>
                       {new Date(upload.created_at).toLocaleDateString()}
                     </TableCell>
+                    <TableCell>{upload.status}</TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"
@@ -525,6 +549,7 @@ const PriceComparisons = () => {
                           setSelectedUploadId(upload.id);
                           setShowDeleteConfirm(true);
                         }}
+                        disabled={isUploading}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -537,7 +562,11 @@ const PriceComparisons = () => {
           <DialogFooter className="sm:justify-between">
             <Button
               variant="destructive"
-              onClick={() => setShowDeleteConfirm(true)}
+              onClick={() => {
+                setSelectedUploadId(null);
+                setShowDeleteConfirm(true);
+              }}
+              disabled={isUploading}
               className="gap-2"
             >
               <AlertOctagon className="h-4 w-4" />

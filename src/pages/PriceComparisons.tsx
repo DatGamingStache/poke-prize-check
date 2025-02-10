@@ -50,8 +50,11 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Badge } from "@/components/ui/badge";
+import { Database } from "@/integrations/supabase/types";
 
-interface CardData {
+type PriceData = Database['public']['Tables']['price_comparisons']['Row'];
+type UploadData = Database['public']['Tables']['price_data_uploads']['Row'];
+type CardData = {
   id: number;
   name: string;
   lowestPrice: number;
@@ -62,18 +65,7 @@ interface CardData {
     hp?: string;
     [key: string]: any;
   };
-}
-
-interface PriceData {
-  card_name: string;
-  set_name?: string;
-  collector_number?: string;
-  local_price: number;
-  price_date?: string;
-  price_change?: number;
-  price_change_percentage?: number;
-  status?: 'new' | 'increased' | 'decreased' | 'unchanged';
-}
+};
 
 type SortField = 'price' | 'name' | 'date' | 'change';
 type SortOrder = 'asc' | 'desc';
@@ -183,7 +175,7 @@ const PriceComparisons = () => {
             throw new Error('File must contain an array of card data');
           }
 
-          const validatedData = content.map((item: CardData): PriceData => {
+          const validatedData = content.map((item: CardData) => {
             if (!item.name || typeof item.name !== 'string') {
               throw new Error('Each item must have a valid name');
             }
@@ -223,13 +215,7 @@ const PriceComparisons = () => {
 
           const { error: insertError } = await supabase
             .from('static_card_prices')
-            .insert(validatedData.map(item => ({
-              card_name: item.card_name,
-              set_name: item.set_name,
-              collector_number: null,
-              normal_price: item.local_price,
-              price_date: item.price_date,
-            })));
+            .insert(validatedData);
 
           if (insertError) throw insertError;
 

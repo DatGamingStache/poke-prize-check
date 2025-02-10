@@ -390,26 +390,6 @@ export type Database = {
           set_name: string | null
           status: string | null
         }
-        Insert: {
-          card_name?: string | null
-          collector_number?: string | null
-          local_price?: number | null
-          price_change?: number | null
-          price_change_percentage?: number | null
-          price_date?: string | null
-          set_name?: string | null
-          status?: string | null
-        }
-        Update: {
-          card_name?: string | null
-          collector_number?: string | null
-          local_price?: number | null
-          price_change?: number | null
-          price_change_percentage?: number | null
-          price_date?: string | null
-          set_name?: string | null
-          status?: string | null
-        }
         Relationships: []
       }
     }

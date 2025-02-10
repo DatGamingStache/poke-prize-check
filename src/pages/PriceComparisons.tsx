@@ -194,7 +194,6 @@ const PriceComparisons = () => {
               throw new Error('Each item must have a valid lowestPrice');
             }
 
-            // Price is already in dollars, so we use it directly
             return {
               card_name: item.name,
               set_name: item.setName || null,
@@ -225,9 +224,13 @@ const PriceComparisons = () => {
 
           if (recordError) throw recordError;
 
+          // Update the upsert operation to handle duplicates
           const { error: insertError } = await supabase
             .from('static_card_prices')
-            .insert(validatedData);
+            .upsert(validatedData, {
+              onConflict: 'card_name,set_name',
+              ignoreDuplicates: false
+            });
 
           if (insertError) throw insertError;
 

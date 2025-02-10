@@ -203,6 +203,36 @@ export type Database = {
           },
         ]
       }
+      static_card_prices: {
+        Row: {
+          card_name: string
+          collector_number: string | null
+          foil_price: number | null
+          id: string
+          normal_price: number | null
+          price_date: string | null
+          set_name: string | null
+        }
+        Insert: {
+          card_name: string
+          collector_number?: string | null
+          foil_price?: number | null
+          id?: string
+          normal_price?: number | null
+          price_date?: string | null
+          set_name?: string | null
+        }
+        Update: {
+          card_name?: string
+          collector_number?: string | null
+          foil_price?: number | null
+          id?: string
+          normal_price?: number | null
+          price_date?: string | null
+          set_name?: string | null
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           birthdate: string | null
@@ -304,6 +334,22 @@ export type Database = {
           price_date: string | null
           rarity: string | null
           set_name: string | null
+        }
+        Insert: {
+          card_name?: string | null
+          collector_number?: string | null
+          local_price?: number | null
+          price_date?: string | null
+          rarity?: never
+          set_name?: string | null
+        }
+        Update: {
+          card_name?: string | null
+          collector_number?: string | null
+          local_price?: number | null
+          price_date?: string | null
+          rarity?: never
+          set_name?: string | null
         }
         Relationships: []
       }

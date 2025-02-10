@@ -248,6 +248,7 @@ export type Database = {
           price_date: string | null
           set_name: string | null
           status: string | null
+          upload_id: string | null
         }
         Insert: {
           card_name: string
@@ -260,6 +261,7 @@ export type Database = {
           price_date?: string | null
           set_name?: string | null
           status?: string | null
+          upload_id?: string | null
         }
         Update: {
           card_name?: string
@@ -272,8 +274,17 @@ export type Database = {
           price_date?: string | null
           set_name?: string | null
           status?: string | null
+          upload_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "static_card_prices_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "price_data_uploads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_preferences: {
         Row: {

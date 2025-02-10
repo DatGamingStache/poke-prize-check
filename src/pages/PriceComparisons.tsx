@@ -278,19 +278,19 @@ const PriceComparisons = () => {
 
   const handleDeleteUpload = async (uploadId: string) => {
     try {
-      const { error: deleteError } = await supabase
-        .from("price_data_uploads")
-        .delete()
-        .eq("id", uploadId);
-
-      if (deleteError) throw deleteError;
-
       const { error: pricesError } = await supabase
         .from("static_card_prices")
         .delete()
         .eq("upload_id", uploadId);
 
       if (pricesError) throw pricesError;
+
+      const { error: deleteError } = await supabase
+        .from("price_data_uploads")
+        .delete()
+        .eq("id", uploadId);
+
+      if (deleteError) throw deleteError;
 
       toast({
         title: "Success",

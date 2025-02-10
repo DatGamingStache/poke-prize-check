@@ -302,10 +302,8 @@ export type Database = {
           collector_number: string | null
           local_price: number | null
           price_date: string | null
-          price_difference_percentage: number | null
           rarity: string | null
           set_name: string | null
-          tcgplayer_price: number | null
         }
         Relationships: []
       }

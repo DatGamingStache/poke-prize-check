@@ -20,14 +20,14 @@ const PriceComparisons = () => {
   const [shopUrl, setShopUrl] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Fetch price comparisons
-  const { data: comparisons, isLoading } = useQuery({
+  // Fetch price data
+  const { data: prices, isLoading } = useQuery({
     queryKey: ["price-comparisons"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("price_comparisons")
         .select("*")
-        .order("price_difference_percentage", { ascending: true });
+        .order("price_date", { ascending: false });
 
       if (error) throw error;
       return data;
@@ -35,20 +35,11 @@ const PriceComparisons = () => {
   });
 
   // Calculate statistics
-  const stats = comparisons?.reduce(
-    (acc, card) => {
-      if (card.price_difference_percentage < 0) {
-        acc.underpriced++;
-        acc.totalSavings += Math.abs(
-          (card.local_price || 0) - (card.tcgplayer_price || 0)
-        );
-      } else {
-        acc.overpriced++;
-      }
-      return acc;
-    },
-    { underpriced: 0, overpriced: 0, totalSavings: 0 }
-  );
+  const stats = {
+    totalCards: prices?.length || 0,
+    averagePrice: prices?.reduce((acc, card) => acc + (card.local_price || 0), 0) / (prices?.length || 1) || 0,
+    lastUpdate: prices?.[0]?.price_date ? new Date(prices[0].price_date).toLocaleDateString() : 'Never'
+  };
 
   // Handle update prices
   const handleUpdatePrices = async () => {
@@ -88,23 +79,23 @@ const PriceComparisons = () => {
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">Price Comparisons</h1>
+      <h1 className="text-3xl font-bold mb-8">Local Shop Prices</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <StatsCard
-          title="Underpriced Cards"
-          value={stats?.underpriced || 0}
-          subtitle="Potential buying opportunities"
+          title="Total Cards"
+          value={stats.totalCards}
+          subtitle="Cards tracked"
         />
         <StatsCard
-          title="Overpriced Cards"
-          value={stats?.overpriced || 0}
-          subtitle="Above market price"
+          title="Average Price"
+          value={`$${stats.averagePrice.toFixed(2)}`}
+          subtitle="Per card"
         />
         <StatsCard
-          title="Total Potential Savings"
-          value={`$${(stats?.totalSavings || 0).toFixed(2)}`}
-          subtitle="On underpriced cards"
+          title="Last Update"
+          value={stats.lastUpdate}
+          subtitle="Price check"
         />
       </div>
 
@@ -128,26 +119,18 @@ const PriceComparisons = () => {
             <TableRow>
               <TableHead>Card Name</TableHead>
               <TableHead>Set</TableHead>
-              <TableHead>Local Price</TableHead>
-              <TableHead>TCGPlayer Price</TableHead>
-              <TableHead>Difference</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Last Updated</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {comparisons?.map((card) => (
+            {prices?.map((card) => (
               <TableRow key={`${card.card_name}-${card.set_name}`}>
                 <TableCell>{card.card_name}</TableCell>
                 <TableCell>{card.set_name}</TableCell>
                 <TableCell>${card.local_price?.toFixed(2)}</TableCell>
-                <TableCell>${card.tcgplayer_price?.toFixed(2)}</TableCell>
-                <TableCell
-                  className={
-                    card.price_difference_percentage < 0
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }
-                >
-                  {card.price_difference_percentage?.toFixed(2)}%
+                <TableCell>
+                  {new Date(card.price_date).toLocaleDateString()}
                 </TableCell>
               </TableRow>
             ))}

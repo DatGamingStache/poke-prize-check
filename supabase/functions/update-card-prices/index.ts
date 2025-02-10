@@ -8,7 +8,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const POKEMON_TCG_API_KEY = Deno.env.get('POKEMON_TCG_API_KEY');
 const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
 
 serve(async (req) => {
@@ -89,32 +88,6 @@ serve(async (req) => {
 
       if (priceError) {
         console.error('Error storing price:', priceError);
-      }
-
-      // Fetch and store TCGPlayer price
-      try {
-        const tcgResponse = await fetch(
-          `https://api.pokemontcg.io/v2/cards?q=name:"${encodeURIComponent(card.name)}"`,
-          { headers: { 'X-Api-Key': POKEMON_TCG_API_KEY! } }
-        );
-        const tcgData = await tcgResponse.json();
-        
-        if (tcgData.data?.[0]?.cardmarket?.price) {
-          const { error: tcgPriceError } = await supabase
-            .from('card_prices')
-            .insert({
-              card_market_data_id: marketData?.[0]?.id,
-              source: 'tcgplayer',
-              price: tcgData.data[0].cardmarket.price,
-              condition: 'NM'
-            });
-
-          if (tcgPriceError) {
-            console.error('Error storing TCG price:', tcgPriceError);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching TCG price:', error);
       }
     }
 

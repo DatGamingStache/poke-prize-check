@@ -52,7 +52,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Database } from "@/integrations/supabase/types";
 
-type PriceData = Database['public']['Tables']['price_comparisons']['Row'];
+type PriceData = Database['public']['Views']['price_comparisons']['Row'];
 type UploadData = Database['public']['Tables']['price_data_uploads']['Row'];
 type CardData = {
   id: number;

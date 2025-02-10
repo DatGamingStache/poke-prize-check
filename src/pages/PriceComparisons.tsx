@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -193,13 +194,12 @@ const PriceComparisons = () => {
               throw new Error('Each item must have a valid lowestPrice');
             }
 
-            const priceInDollars = parseFloat((item.lowestPrice / 100).toFixed(2));
-
+            // Price is already in dollars, so we use it directly
             return {
               card_name: item.name,
               set_name: item.setName || null,
               collector_number: null,
-              normal_price: priceInDollars,
+              normal_price: item.lowestPrice,
               price_date: new Date().toISOString(),
             };
           });

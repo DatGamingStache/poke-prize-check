@@ -15,6 +15,7 @@ import PrintDeckList from "@/pages/PrintDeckList";
 import BinderSetList from "@/pages/BinderSetList";
 import CreateBinderSet from "@/pages/CreateBinderSet";
 import BinderSetView from "@/pages/BinderSetView";
+import PriceComparisons from "@/pages/PriceComparisons";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ function App() {
           <Route path="/binder-helper" element={<BinderSetList />} />
           <Route path="/binder-helper/create" element={<CreateBinderSet />} />
           <Route path="/binder-helper/:id" element={<BinderSetView />} />
+          <Route path="/price-comparisons" element={<PriceComparisons />} />
           {/* Add an alias route for the print functionality */}
           <Route path="/decks/:id/print" element={<PrintDeckList />} />
         </Routes>

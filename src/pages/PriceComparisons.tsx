@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
-import { Home, Upload } from "lucide-react";
+import { Home, Upload, ArrowUpDown } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -33,7 +32,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// Define the expected structure of the uploaded card data
 interface CardData {
   id: number;
   name: string;
@@ -47,32 +45,51 @@ interface CardData {
   };
 }
 
-// Define the structure we want to store
 interface PriceData {
   card_name: string;
   set_name?: string;
   collector_number?: string;
   local_price: number;
   price_date?: string;
+  price_change?: number;
+  price_change_percentage?: number;
 }
+
+type SortField = 'price' | 'name' | 'date' | 'change';
+type SortOrder = 'asc' | 'desc';
 
 const PriceComparisons = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [selectedSet, setSelectedSet] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [sortField, setSortField] = useState<SortField>('change');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
-  // Fetch price data
   const { data: prices, isLoading, refetch } = useQuery({
-    queryKey: ["price-comparisons", selectedSet],
+    queryKey: ["price-comparisons", selectedSet, sortField, sortOrder],
     queryFn: async () => {
       let query = supabase
         .from("price_comparisons")
-        .select("*")
-        .order("price_date", { ascending: false });
+        .select("*");
 
       if (selectedSet) {
         query = query.eq("set_name", selectedSet);
+      }
+
+      switch (sortField) {
+        case 'price':
+          query = query.order('local_price', { ascending: sortOrder === 'asc' });
+          break;
+        case 'name':
+          query = query.order('card_name', { ascending: sortOrder === 'asc' });
+          break;
+        case 'date':
+          query = query.order('price_date', { ascending: sortOrder === 'asc' });
+          break;
+        case 'change':
+          query = query.order('price_change_percentage', { ascending: sortOrder === 'asc', nullsFirst: false });
+          break;
       }
 
       const { data, error } = await query;
@@ -82,7 +99,6 @@ const PriceComparisons = () => {
     },
   });
 
-  // Fetch unique set names
   const { data: sets } = useQuery({
     queryKey: ["card-sets"],
     queryFn: async () => {
@@ -98,14 +114,24 @@ const PriceComparisons = () => {
     },
   });
 
-  // Calculate statistics
   const stats = {
     totalCards: prices?.length || 0,
     averagePrice: prices?.reduce((acc, card) => acc + (card.local_price || 0), 0) / (prices?.length || 1) || 0,
-    lastUpdate: prices?.[0]?.price_date ? new Date(prices[0].price_date).toLocaleDateString() : 'Never'
+    biggestChange: prices?.reduce((max, card) => {
+      const change = card.price_change_percentage || 0;
+      return Math.abs(change) > Math.abs(max) ? change : max;
+    }, 0) || 0
   };
 
-  // Handle file upload
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('desc');
+    }
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -121,7 +147,6 @@ const PriceComparisons = () => {
             throw new Error('File must contain an array of card data');
           }
 
-          // Transform and validate the data structure
           const validatedData = content.map((item: CardData): PriceData => {
             if (!item.name || typeof item.name !== 'string') {
               throw new Error('Each item must have a valid name');
@@ -133,18 +158,16 @@ const PriceComparisons = () => {
             return {
               card_name: item.name,
               set_name: item.setName || null,
-              collector_number: null, // If you have a collector number field, map it here
+              collector_number: null,
               local_price: item.lowestPrice,
               price_date: new Date().toISOString(),
             };
           });
 
-          // Get the current user
           const { data: { user }, error: userError } = await supabase.auth.getUser();
           if (userError) throw userError;
           if (!user) throw new Error('You must be logged in to upload files');
 
-          // Upload file to storage
           const fileName = `${Date.now()}-${file.name}`;
           const { error: uploadError } = await supabase.storage
             .from('price_data')
@@ -152,7 +175,6 @@ const PriceComparisons = () => {
 
           if (uploadError) throw uploadError;
 
-          // Create upload record
           const { error: recordError } = await supabase
             .from('price_data_uploads')
             .insert({
@@ -163,7 +185,6 @@ const PriceComparisons = () => {
 
           if (recordError) throw recordError;
 
-          // Process and insert price data
           const { error: insertError } = await supabase
             .from('static_card_prices')
             .insert(validatedData.map(item => ({
@@ -205,7 +226,6 @@ const PriceComparisons = () => {
     }
   };
 
-  // Prepare chart data
   const chartData = prices?.map(price => ({
     date: new Date(price.price_date).toLocaleDateString(),
     price: price.local_price,
@@ -238,9 +258,9 @@ const PriceComparisons = () => {
           subtitle="Per card"
         />
         <StatsCard
-          title="Last Update"
-          value={stats.lastUpdate}
-          subtitle="Price check"
+          title="Biggest Price Change"
+          value={`${stats.biggestChange.toFixed(2)}%`}
+          subtitle="24h change"
         />
       </div>
 
@@ -281,7 +301,6 @@ const PriceComparisons = () => {
         </div>
       </div>
 
-      {/* Price Chart */}
       <div className="mb-8 h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData}>
@@ -300,20 +319,43 @@ const PriceComparisons = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Card Name</TableHead>
+              <TableHead className="cursor-pointer" onClick={() => handleSort('name')}>
+                Card Name {sortField === 'name' && <ArrowUpDown className="inline h-4 w-4" />}
+              </TableHead>
               <TableHead>Set</TableHead>
               <TableHead>Number</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Last Updated</TableHead>
+              <TableHead className="cursor-pointer" onClick={() => handleSort('price')}>
+                Price {sortField === 'price' && <ArrowUpDown className="inline h-4 w-4" />}
+              </TableHead>
+              <TableHead className="cursor-pointer" onClick={() => handleSort('change')}>
+                24h Change {sortField === 'change' && <ArrowUpDown className="inline h-4 w-4" />}
+              </TableHead>
+              <TableHead className="cursor-pointer" onClick={() => handleSort('date')}>
+                Last Updated {sortField === 'date' && <ArrowUpDown className="inline h-4 w-4" />}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {prices?.map((card) => (
-              <TableRow key={`${card.card_name}-${card.set_name}-${card.collector_number}`}>
+              <TableRow 
+                key={`${card.card_name}-${card.set_name}-${card.collector_number}`}
+                className={card.price_change_percentage ? 
+                  card.price_change_percentage > 0 ? 'bg-green-50' : 
+                  card.price_change_percentage < 0 ? 'bg-red-50' : '' 
+                  : ''}
+              >
                 <TableCell>{card.card_name}</TableCell>
                 <TableCell>{card.set_name}</TableCell>
                 <TableCell>{card.collector_number}</TableCell>
                 <TableCell>${card.local_price?.toFixed(2)}</TableCell>
+                <TableCell className={
+                  card.price_change_percentage > 0 ? 'text-green-600' :
+                  card.price_change_percentage < 0 ? 'text-red-600' : ''
+                }>
+                  {card.price_change_percentage ? 
+                    `${card.price_change_percentage > 0 ? '+' : ''}${card.price_change_percentage.toFixed(2)}%` : 
+                    '-'}
+                </TableCell>
                 <TableCell>
                   {new Date(card.price_date).toLocaleDateString()}
                 </TableCell>
@@ -327,4 +369,3 @@ const PriceComparisons = () => {
 };
 
 export default PriceComparisons;
-

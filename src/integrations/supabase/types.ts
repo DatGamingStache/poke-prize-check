@@ -243,6 +243,8 @@ export type Database = {
           foil_price: number | null
           id: string
           normal_price: number | null
+          price_change: number | null
+          price_change_percentage: number | null
           price_date: string | null
           set_name: string | null
         }
@@ -252,6 +254,8 @@ export type Database = {
           foil_price?: number | null
           id?: string
           normal_price?: number | null
+          price_change?: number | null
+          price_change_percentage?: number | null
           price_date?: string | null
           set_name?: string | null
         }
@@ -261,6 +265,8 @@ export type Database = {
           foil_price?: number | null
           id?: string
           normal_price?: number | null
+          price_change?: number | null
+          price_change_percentage?: number | null
           price_date?: string | null
           set_name?: string | null
         }
@@ -364,24 +370,27 @@ export type Database = {
           card_name: string | null
           collector_number: string | null
           local_price: number | null
+          price_change: number | null
+          price_change_percentage: number | null
           price_date: string | null
-          rarity: string | null
           set_name: string | null
         }
         Insert: {
           card_name?: string | null
           collector_number?: string | null
           local_price?: number | null
+          price_change?: number | null
+          price_change_percentage?: number | null
           price_date?: string | null
-          rarity?: never
           set_name?: string | null
         }
         Update: {
           card_name?: string | null
           collector_number?: string | null
           local_price?: number | null
+          price_change?: number | null
+          price_change_percentage?: number | null
           price_date?: string | null
-          rarity?: never
           set_name?: string | null
         }
         Relationships: []

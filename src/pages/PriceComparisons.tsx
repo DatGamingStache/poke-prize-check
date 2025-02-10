@@ -193,7 +193,7 @@ const PriceComparisons = () => {
               throw new Error('Each item must have a valid lowestPrice');
             }
 
-            const priceInDollars = item.lowestPrice / 100;
+            const priceInDollars = parseFloat((item.lowestPrice / 100).toFixed(2));
 
             return {
               card_name: item.name,

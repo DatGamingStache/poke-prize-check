@@ -23,7 +23,7 @@ import {
 
 const PriceComparisons = () => {
   const { toast } = useToast();
-  const [selectedSet, setSelectedSet] = useState<string>("");
+  const [selectedSet, setSelectedSet] = useState<string | null>(null);
 
   // Fetch price data
   const { data: prices, isLoading } = useQuery({
@@ -91,15 +91,18 @@ const PriceComparisons = () => {
       </div>
 
       <div className="flex gap-4 mb-8">
-        <Select value={selectedSet} onValueChange={setSelectedSet}>
+        <Select 
+          value={selectedSet || "all"} 
+          onValueChange={(value) => setSelectedSet(value === "all" ? null : value)}
+        >
           <SelectTrigger className="w-[280px]">
             <SelectValue placeholder="Filter by set" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Sets</SelectItem>
+            <SelectItem value="all">All Sets</SelectItem>
             {sets?.map((set) => (
-              <SelectItem key={set} value={set}>
-                {set}
+              <SelectItem key={set} value={set || "unknown"}>
+                {set || "Unknown Set"}
               </SelectItem>
             ))}
           </SelectContent>

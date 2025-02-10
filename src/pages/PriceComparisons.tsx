@@ -98,10 +98,16 @@ const PriceComparisons = () => {
             throw new Error('File must contain an array of price data');
           }
 
+          // Get the current user
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+          if (userError) throw userError;
+          if (!user) throw new Error('You must be logged in to upload files');
+
           // Upload file to storage
-          const { data: fileData, error: uploadError } = await supabase.storage
+          const fileName = `${Date.now()}-${file.name}`;
+          const { error: uploadError } = await supabase.storage
             .from('price_data')
-            .upload(`${Date.now()}-${file.name}`, file);
+            .upload(fileName, file);
 
           if (uploadError) throw uploadError;
 
@@ -111,6 +117,7 @@ const PriceComparisons = () => {
             .insert({
               filename: file.name,
               status: 'processing',
+              user_id: user.id,
             });
 
           if (recordError) throw recordError;

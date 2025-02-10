@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Menu, Plus, LogOut, History, ChartBar, Trophy, User, Coffee, BookOpen } from "lucide-react";
+import { Menu, Plus, LogOut, History, ChartBar, Trophy, User, Coffee, BookOpen, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -87,6 +87,10 @@ const DeckListHeader: React.FC<DeckListHeaderProps> = ({
             <DropdownMenuItem onClick={() => navigate("/binder-helper")} className="gap-2">
               <BookOpen className="h-4 w-4" />
               Binder Helper
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/price-comparisons")} className="gap-2">
+              <DollarSign className="h-4 w-4" />
+              Price Reference
             </DropdownMenuItem>
             {isMobile && (
               <>

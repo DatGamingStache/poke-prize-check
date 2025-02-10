@@ -52,12 +52,12 @@ const PriceComparisons = () => {
       const { data, error } = await supabase
         .from("static_card_prices")
         .select("set_name")
-        .not("set_name", "is", null)
-        .order("set_name")
-        .distinct();
+        .eq("set_name", "set_name")
+        .order("set_name");
 
       if (error) throw error;
-      return data.map(row => row.set_name);
+      const uniqueSets = [...new Set(data.map(row => row.set_name))];
+      return uniqueSets.filter(set => set !== null);
     },
   });
 

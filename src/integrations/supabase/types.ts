@@ -247,6 +247,7 @@ export type Database = {
           price_change_percentage: number | null
           price_date: string | null
           set_name: string | null
+          status: string | null
         }
         Insert: {
           card_name: string
@@ -258,6 +259,7 @@ export type Database = {
           price_change_percentage?: number | null
           price_date?: string | null
           set_name?: string | null
+          status?: string | null
         }
         Update: {
           card_name?: string
@@ -269,6 +271,7 @@ export type Database = {
           price_change_percentage?: number | null
           price_date?: string | null
           set_name?: string | null
+          status?: string | null
         }
         Relationships: []
       }
@@ -374,6 +377,7 @@ export type Database = {
           price_change_percentage: number | null
           price_date: string | null
           set_name: string | null
+          status: string | null
         }
         Insert: {
           card_name?: string | null
@@ -383,6 +387,7 @@ export type Database = {
           price_change_percentage?: number | null
           price_date?: string | null
           set_name?: string | null
+          status?: string | null
         }
         Update: {
           card_name?: string | null
@@ -392,6 +397,7 @@ export type Database = {
           price_change_percentage?: number | null
           price_date?: string | null
           set_name?: string | null
+          status?: string | null
         }
         Relationships: []
       }

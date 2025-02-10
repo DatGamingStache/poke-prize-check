@@ -31,6 +31,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { Badge } from "@/components/ui/badge";
 
 interface CardData {
   id: number;
@@ -53,6 +54,7 @@ interface PriceData {
   price_date?: string;
   price_change?: number;
   price_change_percentage?: number;
+  status?: 'new' | 'increased' | 'decreased' | 'unchanged';
 }
 
 type SortField = 'price' | 'name' | 'date' | 'change';
@@ -232,6 +234,28 @@ const PriceComparisons = () => {
     name: price.card_name,
   })) || [];
 
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case 'new':
+        return 'bg-blue-50';
+      case 'increased':
+        return 'bg-red-50';
+      case 'decreased':
+        return 'bg-green-50';
+      default:
+        return '';
+    }
+  };
+
+  const getStatusBadge = (status?: string) => {
+    switch (status) {
+      case 'new':
+        return <Badge className="bg-blue-500">New</Badge>;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
@@ -333,24 +357,22 @@ const PriceComparisons = () => {
               <TableHead className="cursor-pointer" onClick={() => handleSort('date')}>
                 Last Updated {sortField === 'date' && <ArrowUpDown className="inline h-4 w-4" />}
               </TableHead>
+              <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {prices?.map((card) => (
               <TableRow 
                 key={`${card.card_name}-${card.set_name}-${card.collector_number}`}
-                className={card.price_change_percentage ? 
-                  card.price_change_percentage > 0 ? 'bg-green-50' : 
-                  card.price_change_percentage < 0 ? 'bg-red-50' : '' 
-                  : ''}
+                className={getStatusColor(card.status)}
               >
                 <TableCell>{card.card_name}</TableCell>
                 <TableCell>{card.set_name}</TableCell>
                 <TableCell>{card.collector_number}</TableCell>
                 <TableCell>${card.local_price?.toFixed(2)}</TableCell>
                 <TableCell className={
-                  card.price_change_percentage > 0 ? 'text-green-600' :
-                  card.price_change_percentage < 0 ? 'text-red-600' : ''
+                  card.price_change_percentage > 0 ? 'text-red-600' :
+                  card.price_change_percentage < 0 ? 'text-green-600' : ''
                 }>
                   {card.price_change_percentage ? 
                     `${card.price_change_percentage > 0 ? '+' : ''}${card.price_change_percentage.toFixed(2)}%` : 
@@ -358,6 +380,9 @@ const PriceComparisons = () => {
                 </TableCell>
                 <TableCell>
                   {new Date(card.price_date).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  {getStatusBadge(card.status)}
                 </TableCell>
               </TableRow>
             ))}

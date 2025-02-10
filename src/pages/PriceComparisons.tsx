@@ -33,6 +33,15 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+// Define the expected structure of price data
+interface PriceData {
+  card_name: string;
+  set_name?: string;
+  collector_number?: string;
+  local_price: number;
+  price_date?: string;
+}
+
 const PriceComparisons = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -98,6 +107,23 @@ const PriceComparisons = () => {
             throw new Error('File must contain an array of price data');
           }
 
+          // Validate the data structure
+          const validatedData = content.map((item: any): PriceData => {
+            if (!item.card_name || typeof item.card_name !== 'string') {
+              throw new Error('Each item must have a valid card_name');
+            }
+            if (!item.local_price || typeof item.local_price !== 'number') {
+              throw new Error('Each item must have a valid local_price');
+            }
+            return {
+              card_name: item.card_name,
+              set_name: item.set_name || null,
+              collector_number: item.collector_number || null,
+              local_price: item.local_price,
+              price_date: item.price_date || new Date().toISOString(),
+            };
+          });
+
           // Get the current user
           const { data: { user }, error: userError } = await supabase.auth.getUser();
           if (userError) throw userError;
@@ -125,12 +151,12 @@ const PriceComparisons = () => {
           // Process and insert price data
           const { error: insertError } = await supabase
             .from('static_card_prices')
-            .insert(content.map((item: any) => ({
+            .insert(validatedData.map(item => ({
               card_name: item.card_name,
               set_name: item.set_name,
               collector_number: item.collector_number,
               normal_price: item.local_price,
-              price_date: item.price_date || new Date().toISOString(),
+              price_date: item.price_date,
             })));
 
           if (insertError) throw insertError;

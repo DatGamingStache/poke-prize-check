@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
-import { FileText, ArrowDownAZ, ArrowUpZA, Search, Trash2 } from "lucide-react";
+import { FileText, ArrowDownAZ, ArrowUpZA, Search, Trash2, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +35,7 @@ interface PriceItem {
   price_difference: number;
   percentage_difference: number;
   minus_whatnot_fees: number;
+  link?: string;
 }
 
 interface UploadItem {
@@ -90,12 +91,27 @@ const PricingVisualizer = () => {
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
-        const jsonData = JSON.parse(e.target?.result as string);
+        if (!e.target?.result) {
+          throw new Error("Failed to read file");
+        }
+        
+        const jsonData = JSON.parse(e.target.result as string);
         
         // Check if the data is in the expected format
         if (Array.isArray(jsonData) && jsonData.length > 0) {
-          // First save to database
+          // First check if user is authenticated
           const { data: { user } } = await supabase.auth.getUser();
+          
+          if (!user) {
+            toast({
+              title: "Authentication required",
+              description: "You need to be logged in to save uploads",
+              variant: "destructive",
+            });
+            // Still set the data locally even if not authenticated
+            setPriceData(jsonData);
+            return;
+          }
           
           // Create an upload record
           const { data: uploadData, error: uploadError } = await supabase
@@ -104,19 +120,29 @@ const PricingVisualizer = () => {
               filename: file.name,
               status: 'completed',
               processed_count: jsonData.length,
-              user_id: user?.id
+              user_id: user.id
             })
             .select()
             .single();
 
-          if (uploadError) throw uploadError;
+          if (uploadError) {
+            console.error("Error saving upload:", uploadError);
+            toast({
+              title: "Error saving to database",
+              description: uploadError.message,
+              variant: "destructive",
+            });
+            // Still set the data locally even if database fails
+            setPriceData(jsonData);
+            return;
+          }
           
           // Save price items to local state
           setPriceData(jsonData);
           
           toast({
             title: "File loaded successfully",
-            description: `Loaded ${jsonData.length} items`,
+            description: `Loaded ${jsonData.length} items and saved to database`,
           });
         } else {
           toast({
@@ -136,6 +162,16 @@ const PricingVisualizer = () => {
         setIsLoading(false);
       }
     };
+    
+    reader.onerror = () => {
+      toast({
+        title: "Error reading file",
+        description: "There was an error reading the file",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+    };
+    
     reader.readAsText(file);
   };
 
@@ -215,6 +251,10 @@ const PricingVisualizer = () => {
     return [...filtered].sort((a, b) => {
       const aValue = a[sortField];
       const bValue = b[sortField];
+      
+      // Handle null/undefined values
+      if (aValue === null || aValue === undefined) return sortDirection === "asc" ? -1 : 1;
+      if (bValue === null || bValue === undefined) return sortDirection === "asc" ? 1 : -1;
       
       // Ensure we're comparing the same types
       if (typeof aValue === 'number' && typeof bValue === 'number') {
@@ -363,6 +403,9 @@ const PricingVisualizer = () => {
                           sortDirection === "asc" ? "↑" : "↓"
                         )}
                       </TableHead>
+                      <TableHead className="text-right">
+                        Link
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -374,6 +417,18 @@ const PricingVisualizer = () => {
                         <TableCell className="text-right">{formatCurrency(item.price_difference)}</TableCell>
                         <TableCell className="text-right">{formatPercentage(item.percentage_difference)}</TableCell>
                         <TableCell className="text-right">{formatCurrency(item.minus_whatnot_fees)}</TableCell>
+                        <TableCell className="text-right">
+                          {item.link && (
+                            <a 
+                              href={item.link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center text-blue-500 hover:text-blue-700"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          )}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

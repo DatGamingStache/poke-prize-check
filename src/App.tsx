@@ -17,6 +17,7 @@ import CreateBinderSet from "@/pages/CreateBinderSet";
 import BinderSetView from "@/pages/BinderSetView";
 import PriceComparisons from "@/pages/PriceComparisons";
 import EnergyOptimizer from "@/pages/EnergyOptimizer";
+import PricingVisualizer from "@/pages/PricingVisualizer";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ function App() {
           <Route path="/binder-helper/:id" element={<BinderSetView />} />
           <Route path="/price-comparisons" element={<PriceComparisons />} />
           <Route path="/energy-optimizer" element={<EnergyOptimizer />} />
+          <Route path="/pricing-visualizer" element={<PricingVisualizer />} />
           {/* Add an alias route for the print functionality */}
           <Route path="/decks/:id/print" element={<PrintDeckList />} />
         </Routes>

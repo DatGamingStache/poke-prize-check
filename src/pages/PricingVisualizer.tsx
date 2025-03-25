@@ -79,21 +79,22 @@ const PricingVisualizer = () => {
 
     // Then sort
     return [...filtered].sort((a, b) => {
-      const valueA = a[sortField];
-      const valueB = b[sortField];
+      const aValue = a[sortField];
+      const bValue = b[sortField];
       
-      // Handle numeric values (most fields)
-      if (typeof valueA === 'number' && typeof valueB === 'number') {
-        return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
+      // Ensure we're comparing the same types
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
       }
       
-      // Handle string values (like name)
-      if (typeof valueA === 'string' && typeof valueB === 'string') {
+      // Handle string comparison (like for name field)
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
         return sortDirection === "asc" 
-          ? valueA.localeCompare(valueB) 
-          : valueB.localeCompare(valueA);
+          ? aValue.localeCompare(bValue) 
+          : bValue.localeCompare(aValue);
       }
       
+      // Default return if types don't match (shouldn't happen with proper typing)
       return 0;
     });
   }, [priceData, sortField, sortDirection, searchQuery]);

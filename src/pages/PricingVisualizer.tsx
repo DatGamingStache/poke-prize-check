@@ -1,12 +1,31 @@
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
-import { FileText, ArrowDownAZ, ArrowUpZA, Search } from "lucide-react";
+import { FileText, ArrowDownAZ, ArrowUpZA, Search, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface PriceItem {
   id: number;
@@ -18,25 +37,83 @@ interface PriceItem {
   minus_whatnot_fees: number;
 }
 
+interface UploadItem {
+  id: string;
+  filename: string;
+  created_at: string;
+  status: string;
+  processed_count: number;
+}
+
 const PricingVisualizer = () => {
   const [priceData, setPriceData] = useState<PriceItem[]>([]);
   const [sortField, setSortField] = useState<keyof PriceItem>("percentage_difference");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showUploadsDialog, setShowUploadsDialog] = useState(false);
+  const [uploads, setUploads] = useState<UploadItem[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [selectedUploadId, setSelectedUploadId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Fetch uploads when dialog opens
+  useEffect(() => {
+    if (showUploadsDialog) {
+      fetchUploads();
+    }
+  }, [showUploadsDialog]);
+
+  const fetchUploads = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("price_data_uploads")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setUploads(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error fetching uploads",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    setIsLoading(true);
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const jsonData = JSON.parse(e.target?.result as string);
         
-        // Check if the data is in the expected format (array of objects with required fields)
+        // Check if the data is in the expected format
         if (Array.isArray(jsonData) && jsonData.length > 0) {
+          // First save to database
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          // Create an upload record
+          const { data: uploadData, error: uploadError } = await supabase
+            .from("price_data_uploads")
+            .insert({
+              filename: file.name,
+              status: 'completed',
+              processed_count: jsonData.length,
+              user_id: user?.id
+            })
+            .select()
+            .single();
+
+          if (uploadError) throw uploadError;
+          
+          // Save price items to local state
           setPriceData(jsonData);
+          
           toast({
             title: "File loaded successfully",
             description: `Loaded ${jsonData.length} items`,
@@ -49,15 +126,72 @@ const PricingVisualizer = () => {
           });
         }
       } catch (error) {
-        console.error("Error parsing JSON:", error);
+        console.error("Error processing JSON:", error);
         toast({
           title: "Error parsing file",
           description: "Please upload a valid JSON file",
           variant: "destructive",
         });
+      } finally {
+        setIsLoading(false);
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleDeleteUpload = async () => {
+    if (!selectedUploadId) return;
+    
+    try {
+      setIsLoading(true);
+      const { error } = await supabase
+        .from("price_data_uploads")
+        .delete()
+        .eq("id", selectedUploadId);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Upload deleted",
+        description: "The upload has been removed successfully",
+      });
+      
+      // Refresh uploads list
+      fetchUploads();
+    } catch (error: any) {
+      toast({
+        title: "Error deleting upload",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+      setShowDeleteConfirm(false);
+      setSelectedUploadId(null);
+    }
+  };
+
+  const loadUpload = async (uploadId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // In a real implementation, you would fetch the price data associated with this upload
+      // For now we'll just show a message
+      toast({
+        title: "Upload loaded",
+        description: "This feature is not fully implemented yet",
+      });
+      
+      setShowUploadsDialog(false);
+    } catch (error: any) {
+      toast({
+        title: "Error loading upload",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSort = (field: keyof PriceItem) => {
@@ -113,19 +247,28 @@ const PricingVisualizer = () => {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Pricing Visualizer</span>
-            <Button variant="outline" className="gap-2">
-              <label htmlFor="file-upload" className="cursor-pointer flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Upload JSON
-              </label>
-              <input
-                id="file-upload"
-                type="file"
-                accept=".json"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowUploadsDialog(true)}
+              >
+                Manage Uploads
+              </Button>
+              <Button variant="outline" className="gap-2">
+                <label htmlFor="file-upload" className="cursor-pointer flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Upload JSON
+                </label>
+                <input
+                  id="file-upload"
+                  type="file"
+                  accept=".json"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  disabled={isLoading}
+                />
+              </Button>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -254,6 +397,96 @@ const PricingVisualizer = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Uploads Management Dialog */}
+      <Dialog open={showUploadsDialog} onOpenChange={setShowUploadsDialog}>
+        <DialogContent className="sm:max-w-[475px]">
+          <DialogHeader>
+            <DialogTitle>Manage Uploads</DialogTitle>
+            <DialogDescription>
+              View and manage your previously uploaded price data files.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="max-h-[400px] overflow-y-auto">
+            {uploads.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Filename</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {uploads.map((upload) => (
+                    <TableRow key={upload.id}>
+                      <TableCell>{upload.filename}</TableCell>
+                      <TableCell>{new Date(upload.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>{upload.status}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => loadUpload(upload.id)}
+                          >
+                            Load
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedUploadId(upload.id);
+                              setShowDeleteConfirm(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center p-4 text-muted-foreground">
+                No uploads found
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUploadsDialog(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Upload</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this upload? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowDeleteConfirm(false);
+              setSelectedUploadId(null);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteUpload}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
